@@ -21,3 +21,9 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## 11/15/24
+- I added /etc/systemd/system/npmrun.service to spin up service on boot
+- i added ~/.config/lxsession/LXDE-pi/autostart to open firefox in kiosk mode at localhost:5174
+
+
