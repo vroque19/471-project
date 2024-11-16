@@ -1,6 +1,13 @@
 # senior design project
 ## Developing
 
+# TODO
+1. add sleep data view
+2. add swipe feature
+3. send sleep data to a database
+4. connect phillips hue
+5. set phillips hue schedule to read from the database
+   
 start a development server:
 
 ```bash
