@@ -1,5 +1,12 @@
 <script>
   import "../app.css";
+  import { fly } from 'svelte/transition';
+  import { handleTouchStart, handleTouchEnd, currentPage } from '../app.svelte.js';
 </script>
 
-<slot />
+<div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white flex items-center justify-center p-4" on:touchstart={handleTouchStart} on:touchend={handleTouchEnd}>
+  <div class="bg-gray-800 rounded-3xl shadow-2xl p-8 max-w-2xl w-full mx-auto h-full">
+    <slot />
+    <h1>Page: {$currentPage}</h1>
+    </div>
+</div>
