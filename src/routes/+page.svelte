@@ -1,6 +1,6 @@
 <script>
   import TimeCard from '$lib/components/TimeCard.svelte';
-  import {currentPage} from '../app.svelte.js'
+  import { fly } from 'svelte/transition'
   let time = $state(new Date());
   let date = $state(new Date());
   let wake_time = $state("00:00");
@@ -17,7 +17,7 @@
   let formattedTime = $derived(time.toLocaleTimeString('en-US', full_time_options));
 
   </script>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8" in:fly={{ x: -200, duration: 300 }} out:fly={{x:-200, duration: 300}}>
         <div class="col-span-1 md:col-span-2 text-center">
           <h1 class="text-9xl font-bold mb-2">{formattedTime}</h1>
           <h2 class="text-4xl text-gray-400 mb-10">{formattedDate}</h2>
@@ -26,5 +26,6 @@
 
           <TimeCard icon_url={"sunset.svg"} bind:time={bed_time}>Bedtime</TimeCard>
       </div>
+
 
 

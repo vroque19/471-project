@@ -1,6 +1,9 @@
 import { writable } from 'svelte/store';
 import { goto } from '$app/navigation';
 
+export const direction = $state({
+  dir: 0
+});
 export const pages = ['', 'daily', 'weekly'];
 let startX = 0;
 let endX = 0;
