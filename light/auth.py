@@ -7,7 +7,7 @@ from time import sleep
 
 load_dotenv()
 
-class LightTalk:
+class SmartLight:
   def __init__(self, light_id):
     self._token = os.getenv("LIGHT_PAT")
     self._light_id = light_id
@@ -104,20 +104,20 @@ class LightTalk:
       return response.json()
     raise ValueError(f"Could not initiate sunset for light id: {self._light_id} \n {response.text} \n {response}")
 
-def light_power_demo(light: LightTalk):
+def light_power_demo(light: SmartLight):
   while 1:
     light.turn_off()
     sleep(2)
     light.turn_on()
     sleep(5)
 
-def light_sun_demo(light: LightTalk):
+def light_sun_demo(light: SmartLight):
   while 1:
     light.sunrise()
     light.sunset()
 
 def main():
-  light1 = LightTalk(os.getenv("LIGHT1_ID"))
+  light1 = SmartLight(os.getenv("LIGHT1_ID"))
   light_power_demo(light1)
   # light_sun_demo(light1)
 
