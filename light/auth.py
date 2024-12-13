@@ -57,6 +57,7 @@ class SmartLight:
   
 
   def turn_on(self):
+    self.change_brightness(0.5)
     return self.change_power_state("on")
 
 
@@ -84,7 +85,7 @@ class SmartLight:
 
     }
     response = requests.post(endpoint, json=payload, headers=self.put_headers)
-    print(response)
+    # print(response)
     if response.ok:
       return response.json()
     raise ValueError(f"Could not initiate sunrise for light id: {self._light_id} \n {response.text} \n {response}")
@@ -105,11 +106,14 @@ class SmartLight:
     raise ValueError(f"Could not initiate sunset for light id: {self._light_id} \n {response.text} \n {response}")
 
 def light_power_demo(light: SmartLight):
-  while 1:
-    light.turn_off()
-    sleep(2)
+  colors = ["purple", "blue", "blue saturation:0.5", "orange", "red", "pink"]
+  light.change_brightness(0.3)
+  for i in range(len(colors)):
+    light.change_color_state(colors[i])
     light.turn_on()
-    sleep(5)
+    sleep(2)
+    light.turn_off()
+    sleep(0.3)
 
 def light_sun_demo(light: SmartLight):
   while 1:
@@ -118,8 +122,8 @@ def light_sun_demo(light: SmartLight):
 
 def main():
   light1 = SmartLight(os.getenv("LIGHT1_ID"))
-  light_power_demo(light1)
-  # light_sun_demo(light1)
+  # light_power_demo(light1)
+  light_sun_demo(light1)
 
 
 
