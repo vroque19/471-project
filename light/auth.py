@@ -70,8 +70,8 @@ class SmartLight:
     payload = {
       "power" : state,
     }
-    print(state)
     response = requests.put(endpoint, headers=self.put_headers, json=payload)
+    print(state)
     if response.ok:
       return response.json()
     raise ValueError(f"Could not change power state to {state} for light id: {self._light_id} \n{response.text} \n {response}")
