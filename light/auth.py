@@ -74,19 +74,61 @@ class LightTalk:
     if response.ok:
       return response.json()
     raise ValueError(f"Could not change power state to {state} for light id: {self._light_id} \n{response.text} \n {response}")
+  
+  def sunrise(self):
+    endpoint = f"https://api.lifx.com/v1/lights/id:{self._light_id}/effects/sunrise"
+    payload = {
+      "duration" : 10,
+      "persist": False,
+      "fast": False
+
+    }
+    response = requests.post(endpoint, json=payload, headers=self.put_headers)
+    print(response)
+    if response.ok:
+      return response.json()
+    raise ValueError(f"Could not initiate sunrise for light id: {self._light_id} \n {response.text} \n {response}")
+  
+  def sunset(self):
+    endpoint = f"https://api.lifx.com/v1/lights/id:{self._light_id}/effects/sunset"
+    payload = {
+      "duration" : 10,
+      "soft_off": False,
+      "power_on": True,
+      "fast": False
+
+    }
+    response = requests.post(endpoint, json=payload, headers=self.put_headers)
+    print(response)
+    if response.ok:
+      return response.json()
+    raise ValueError(f"Could not initiate sunset for light id: {self._light_id} \n {response.text} \n {response}")
+
+def light_power_demo(light: LightTalk):
+  while 1:
+    light.turn_off()
+    sleep(2)
+    light.turn_on()
+    sleep(5)
+
+def light_sun_demo(light: LightTalk):
+  while 1:
+    light.sunrise()
+    light.sunset()
+
+def main():
+  light1 = LightTalk(os.getenv("LIGHT1_ID"))
+  light_power_demo(light1)
+  # light_sun_demo(light1)
 
 
-light1 = LightTalk(os.getenv("LIGHT1_ID"))
-jr = light1.change_color_state("blue")
-light1.pretty_print(jr)
-light1.turn_on()
-light1.change_color_state("red saturation:0.8")
-light1.change_brightness(0.5)
-
-while 1:
-  light1.turn_off()
-  sleep(2)
-  light1.turn_on()
-  sleep(5)
 
 
+  # jr = light1.change_color_state("blue")
+  # light1.pretty_print(jr)
+  # light1.turn_on()
+  # light1.change_color_state("red saturation:0.8")
+  # light1.change_brightness(0.5)
+
+if __name__ == "__main__":
+  main()
