@@ -24,7 +24,7 @@ export const handleTouchEnd = (e) => {
 };
 export const navigateToPrevPage = () => {
   currentPage.update((page) => {
-    console.log(page);
+    console.log(page-1); // print curr page
     if (page > 0) {
       goto('/' + pages[page - 1]);
       return page - 1;
@@ -33,9 +33,9 @@ export const navigateToPrevPage = () => {
   })
   
 }
-export const navigateToNextPage = () => {
+export const navigateToNextPage = () => { 
   currentPage.update((page) => {
-    console.log(page);
+    console.log(page+1); // print curr page
     if (page < pages.length - 1) {
       goto('/' + pages[page + 1]);
       return page + 1;
@@ -44,4 +44,33 @@ export const navigateToNextPage = () => {
   })
 }; 
 
+// Function to log the mouse position
+let lastX = null;
+let timer = null;
 
+export const getMouseDelta = (e) => {
+  const currX = e.clientX;
+  if(timer) {
+    clearTimeout(timer);
+  }
+  timer = setTimeout(() => {
+    if(lastX !== null) {
+      const diff = currX - lastX;
+      console.log(`Mouse Position: X=${e.clientX}, Y=${e.clientY}`);
+      console.log(`Difference in X position after 0.2s: ${diff}`);
+      if(diff > 50) {
+        console.log("yuh");
+        navigateToPrevPage();
+      } else if( diff < -50) {
+        console.log("boi");
+        navigateToNextPage();
+      }
+    }
+    lastX = currX;
+  }, 200);
+};
+
+// Attach the mousemove event listener
+if (typeof window !== 'undefined') {
+  window.addEventListener('mousemove', getMouseDelta);
+}

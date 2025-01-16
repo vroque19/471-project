@@ -23,6 +23,7 @@
     "vite": "^5.0.3"
   },
   "dependencies": {
+    "layercake": "^8.4.2",
     "svelty-picker": "^5.2.9"
   }
 }
