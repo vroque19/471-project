@@ -52,4 +52,5 @@ Exec=/home/rpi5/open-local.sh
 Type=Application
 X-GNOME-Autostart-enabled=true
 ```
-
+# Resources
+[Layer Cake](https://layercake.graphics/) <br>
