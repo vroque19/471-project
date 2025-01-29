@@ -1,13 +1,14 @@
 {
   "name": "471-project",
-  "version": "0.0.1",
   "type": "module",
+  "version": "0.0.1",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch"
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
+    "start": "node scripts/initDb.js"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^3.0.0",
@@ -23,6 +24,7 @@
     "vite": "^5.0.3"
   },
   "dependencies": {
+    "better-sqlite3": "^11.8.1",
     "layercake": "^8.4.2",
     "svelty-picker": "^5.2.9"
   }
