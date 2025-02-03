@@ -5,10 +5,15 @@ from datetime import datetime
 import pytz
 from . import models
 from .database import get_db_connection, init_db
+from .auth import schedule
 
+# from dotenv import load_dotenv
+
+# load_dotenv()
 app = FastAPI()
 
 # Initialize database
+
 init_db()
 tz_LA = pytz.timezone("America/Los_Angeles")
 # CORS middleware
@@ -46,6 +51,7 @@ def get_all_rows(table_name: str):
 def read_root():
     try:
         conn = get_db_connection()
+        schedule()
         c = conn.cursor()
         c.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = c.fetchall()
