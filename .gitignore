@@ -22,4 +22,5 @@ vite.config.ts.timestamp-*
 
 
 # venv
-
+venv/
+.venv/
