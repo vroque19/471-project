@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import { goto } from '$app/navigation';
+// import {db, settings} from '$lib/db.js';
 
 export const direction = $state({
   dir: 0
@@ -44,33 +45,35 @@ export const navigateToNextPage = () => {
   })
 }; 
 
-// Function to log the mouse position
-let lastX = null;
-let timer = null;
+// // Function to log the mouse position
+// let lastX = null;
+// let timer = null;
 
-export const getMouseDelta = (e) => {
-  const currX = e.clientX;
-  if(timer) {
-    clearTimeout(timer);
-  }
-  timer = setTimeout(() => {
-    if(lastX !== null) {
-      const diff = currX - lastX;
-      console.log(`Mouse Position: X=${e.clientX}, Y=${e.clientY}`);
-      console.log(`Difference in X position after 0.2s: ${diff}`);
-      if(diff > 50) {
-        console.log("yuh");
-        navigateToPrevPage();
-      } else if( diff < -50) {
-        console.log("boi");
-        navigateToNextPage();
-      }
-    }
-    lastX = currX;
-  }, 200);
-};
+// export const getMouseDelta = (e) => {
+//   const currX = e.clientX;
+//   if(timer) {
+//     clearTimeout(timer);
+//   }
+//   timer = setTimeout(() => {
+//     if(lastX !== null) {
+//       const diff = currX - lastX;
+//       console.log(`Mouse Position: X=${e.clientX}, Y=${e.clientY}`);
+//       console.log(`Difference in X position after 0.2s: ${diff}`);
+//       if(diff > 50) {
+//         console.log("yuh");
+//         navigateToPrevPage();
+//       } else if( diff < -50) {
+//         console.log("boi");
+//         navigateToNextPage();
+//       }
+//     }
+//     lastX = currX;
+//   }, 200);
+// };
 
-// Attach the mousemove event listener
-if (typeof window !== 'undefined') {
-  window.addEventListener('mousemove', getMouseDelta);
-}
+// // Attach the mousemove event listener
+// if (typeof window !== 'undefined') {
+//   window.addEventListener('mousemove', getMouseDelta);
+// }
+
+
