@@ -56,3 +56,4 @@ X-GNOME-Autostart-enabled=true
 ```
 # Resources
 [Layer Cake](https://layercake.graphics/) <br>
+[adafruit MS8607](https://learn.adafruit.com/adafruit-te-ms8607-pht-sensor/python-circuitpython)
