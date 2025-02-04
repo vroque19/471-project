@@ -5,6 +5,7 @@ import os
 import pytz
 import random  # Replace with actual sensor reading
 from datetime import datetime
+from .light_sensor import read_light
 
 
 script_dr = os.path.dirname(os.path.abspath(__file__))
@@ -21,7 +22,7 @@ def log_data():
     timestamp = time.strftime("%H:%M:%S")
     motion = random.randint(0, 1)  # Replace with actual light sensor reading
     temperature = round(random.uniform(20, 30), 2)  # Replace with actual temp sensor
-    light = str(random.randint(0, lux_max))
+    light = read_light()
     date = datetime.now(tz_LA).strftime("%a")
     cursor.execute(
         "INSERT INTO sleep_data (date, timestamp, light, temperature, motion) VALUES (?, ?, ?, ?, ?)",
