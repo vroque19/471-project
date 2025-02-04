@@ -1,19 +1,26 @@
 # backend/app/main.py
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
 import pytz
 from . import models
+from datetime import datetime
 from .database import get_db_connection, init_db
-from .auth import schedule
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+import os
+import sys
+import time
 
-# from dotenv import load_dotenv
+light_path = os.path.abspath("/home/ubuntu/repos/471-project/backend/scripts/auth.py")
+log_data_path = os.path.abspath(
+    "/home/ubuntu/repos/471-project/backend/scripts/log_data.py"
+)
+sys.path.insert(0, light_path)
+sys.path.insert(0, log_data_path)
+from scripts import auth, log_data
 
-# load_dotenv()
+
 app = FastAPI()
 
 # Initialize database
-
 init_db()
 tz_LA = pytz.timezone("America/Los_Angeles")
 # CORS middleware
@@ -26,32 +33,14 @@ app.add_middleware(
 )
 
 
-@app.get("/data/{table_name}")
-def get_all_rows(table_name: str):
-    try:
-        conn = get_db_connection()
-        c = conn.cursor()
-
-        # Query to get all rows from the specified table
-        c.execute(f"SELECT * FROM {table_name};")
-        rows = c.fetchall()
-
-        # Get column names
-        c.execute(f"PRAGMA table_info({table_name});")
-        columns = [col[1] for col in c.fetchall()]
-
-        conn.close()
-        result = [dict(zip(columns, row)) for row in rows]
-        return {"data": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @app.get("/")
 def read_root():
     try:
         conn = get_db_connection()
-        schedule()
+        # auth.schedule()
+        for i in range(5):
+            log_data.log_data()
+            time.sleep(1)
         c = conn.cursor()
         c.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = c.fetchall()
@@ -102,5 +91,26 @@ async def get_latest_settings():
                 "wake_time": record["wake_time"],
             }
         return None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/data/{table_name}")
+def get_all_rows(table_name: str):
+    try:
+        conn = get_db_connection()
+        c = conn.cursor()
+
+        # Query to get all rows from the specified table
+        c.execute(f"SELECT * FROM {table_name};")
+        rows = c.fetchall()
+
+        # Get column names
+        c.execute(f"PRAGMA table_info({table_name});")
+        columns = [col[1] for col in c.fetchall()]
+
+        conn.close()
+        result = [dict(zip(columns, row)) for row in rows]
+        return {"data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

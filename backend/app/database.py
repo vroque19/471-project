@@ -2,7 +2,7 @@ import sqlite3
 import os
 from datetime import datetime
 
-DATABASE_PATH = "../instance/sleeptracker.db"
+DATABASE_PATH = "instance/sleeptracker.db"
 
 
 def get_db_connection():
