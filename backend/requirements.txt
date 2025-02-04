@@ -5,3 +5,5 @@ pydantic==2.5.2
 pytz
 python-dotenv
 requests
+smbus2
+
