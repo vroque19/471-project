@@ -23,10 +23,10 @@
   };
 
   let formattedDate = $derived(
-    date.toLocaleDateString("en-US", full_date_options)
+    date.toLocaleDateString("en-US", full_date_options),
   );
   let formattedTime = $derived(
-    time.toLocaleTimeString("en-US", full_time_options)
+    time.toLocaleTimeString("en-US", full_time_options),
   );
 
   async function saveSleepSetting() {

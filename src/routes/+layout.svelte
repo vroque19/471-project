@@ -13,13 +13,13 @@
 </script>
 
 <div
-  class="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900 text-white flex items-center justify-center p-1"
+  class="min-h-screen bg-gradient-to-br bg-gray-950 text-white flex items-center justify-center p-1 cursor-none"
   on:touchstart={handleTouchStart}
   on:touchend={handleTouchEnd}
   in:fly={{ x: 200, duration: 300 }}
 >
   <div
-    class="bg-gray-820 rounded-3xl shadow-2xl p-4 max-w-2xl w-[800px] h-[480px] mx-auto overflow-hidden"
+    class="bg-gray-820 rounded-3xl shadow-2xl p-4 max-w-2xl w-[800px] h-[480px] mx-auto overflow"
   >
     <nav class=" w-1/6">
       <div
@@ -58,21 +58,21 @@
               <li>
                 <a
                   href="/"
-                  class="block py-2 px-3 text-white bg-gray-700 rounded-sm dark:bg-gray-600"
+                  class="block py-2 px-3 text-white rounded-sm dark:bg-gray-600"
                   aria-current="page">Home</a
                 >
               </li>
               <li>
                 <a
                   href="daily"
-                  class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  class="block py-2 px-3 text-white rounded-sm hover:bg-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                   >Daily Sleep Score</a
                 >
               </li>
               <li>
                 <a
                   href="weekly"
-                  class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white"
+                  class="block py-2 px-3 text-white rounded-sm hover:bg-gray-600 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white"
                   >Weekly Sleep Data</a
                 >
               </li>
