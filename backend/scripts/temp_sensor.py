@@ -11,7 +11,9 @@ i2c = board.I2C()
 sensor = adafruit_ms8607.MS8607(i2c)
 
 # Read data from sensor
-
+def read_temp():
+  temp = sensor.temperature
+  return temp
 # Print values
 def read_data():
   pressure = sensor.pressure
@@ -22,6 +24,6 @@ def read_data():
   print(f"Humidity: {humidity:.2f} %")
   time.sleep(1)
 
-while True:
-  read_data()
-  time.sleep(1)
+# while True:
+#   read_data()
+#   time.sleep(1)

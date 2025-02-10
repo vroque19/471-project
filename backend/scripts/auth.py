@@ -21,6 +21,10 @@ class SmartLight:
             "accept": "application/json",
             "content-type": "application/json",
         }
+        self.post_headers = {
+            "accept": "application/json",
+            "content-type": "application/json"
+        }
 
     def pretty_print(self, response):
         print(json.dumps(response, indent=4))
@@ -92,35 +96,63 @@ class SmartLight:
 
     def sunset(self):
         endpoint = f"https://api.lifx.com/v1/lights/id:{self._light_id}/effects/sunset"
-        payload = {"duration": 10, "soft_off": False, "power_on": True, "fast": False}
-        response = requests.post(endpoint, json=payload, headers=self.put_headers)
-        print(response)
+        payload = {"duration": 5, "soft_off": True, "power_on": True, "fast": False}
+        response = requests.post(endpoint, json=payload, headers=self.post_headers)
         if response.ok:
+            print(response)
             return response.json()
         raise ValueError(
             f"Could not initiate sunset for light id: {self._light_id} \n {response.text} \n {response}"
         )
 
+    def clouds(self):
+        endpoint = f"https://api.lifx.com/v1/lights/id:{self._light_id}/effects/clouds"
+        payload = {
+        "period": 50,
+        "duration": None,
+        "power_on": True,
+        "min_saturation": 0.2,
+        "fast": False
+        } 
+        response = requests.post(endpoint, json=payload, headers=self.put_headers)
+        if response.ok:
+            print(response)
+            return response.json()
+        raise ValueError(
+            f"Could not initiate sunset for light id: {self._light_id} \n {response.text} \n {response}"
+        )
 
-def light_power_demo(light: SmartLight):
-    colors = ["yellow", "blue", "blue saturation:0.5", "orange", "red", "pink"]
-    light.change_brightness(0.3)
-    for i in range(len(colors)):
-        light.change_color_state(colors[i])
-        light.turn_on()
-        sleep(2)
-        light.turn_off()
-        sleep(0.3)
+    def light_power_demo(self):
+        colors = ["yellow", "blue", "blue saturation:0.5", "orange", "red", "pink"]
+        self.change_brightness(0.3)
+        for i in range(len(colors)):
+            self.change_color_state(colors[i])
+            self.turn_on()
+            sleep(2)
+            self.turn_off()
+            sleep(0.3)
+    def set_state(self, power, color, brightness, duration):
+        endpoint = "https://api.lifx.com/v1/lights/selector/state"
+
+        payload = {
+            "duration": 1,
+            "fast": False
+        }
+        response = requests.post(endpoint, json=payload, headers=self.put_headers)
+        if response.ok:
+            return response.json()
+        raise ValueError(
+            f"Could not set state for light id:{self._light_id }\n {response.text} \n {response}"
+        )
 
 
-def schedule():
-    light1 = SmartLight(os.getenv("LIGHT1_ID"))
-    print("light demo")
-    light_power_demo(light1)
+    
 
 
 def main():
-    schedule()
+    light1 = SmartLight(os.getenv("LIGHT1_ID"))
+    # light1.clouds()
+    light1.change_color_state("cyan")
     # light_power_demo(light1)
     # light_power_demo(light1)
 

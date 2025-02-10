@@ -6,4 +6,10 @@ pytz
 python-dotenv
 requests
 smbus2
+gpiozero
+lgpio
+pigpio
+adafruit-circuitpython-ms8607
+board
+
 

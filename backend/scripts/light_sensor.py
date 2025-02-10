@@ -14,6 +14,10 @@ def read_light():
     data = bus.read_i2c_block_data(DEVICE, CONTINUOUS_H_RES_MODE, 2)
     return (data[0] << 8) + data[1]
 
+# while True:
+#     current_reading = read_light()
+#     print(f"Current light level: {current_reading} lx")
+#     time.sleep(1)
 
 # Thresholds and state tracking
 # threshold = 2
@@ -21,8 +25,6 @@ def read_light():
 
 # try:
 #     while True:
-#         current_reading = read_light()
-#         print(f"Current light level: {current_reading} lx")
 #         previous_reading = current_reading
 #         time.sleep(1)
 
