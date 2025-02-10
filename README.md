@@ -31,8 +31,29 @@ You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 
-### 11/15/24
-/etc/systemd/system/npmrun.service to spin up service on boot
+## Systemd Service Files
+
+### Frontend Services:
+```
+/etc/systemd/system/npmrun.service 
+```
+defines how to manage the Node.js application as a background service on the RaspberryPi 5
+```
+[Unit]
+Description=spin server on boot
+After=network.target
+
+[Service]
+User=rpi5
+WorkingDirectory=/home/rpi5/Desktop/471-project
+ExecStart=/usr/bin/node /usr/lib/node_modules/npm/bin/npm-cli.js run dev
+Restart=always
+StartLimitInterval=0
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
 open-local.sh: 
 ``` bash
 #!/bin/bash
@@ -53,6 +74,27 @@ Name=Open Firefox to localhost
 Exec=/home/rpi5/open-local.sh
 Type=Application
 X-GNOME-Autostart-enabled=true
+```
+## Backend Services:
+```
+/etc/systemd/system/backend.service
+```
+```
+[Unit]
+Description=Backend FastAPI Service
+After=npmrun.service
+Requires=npmrun.service
+
+[Service]
+User=rpi5
+WorkingDirectory=/home/rpi5/Desktop/471-project/backend
+ExecStart=/bin/bash -c 'source venv/bin/activate && uvicorn app.main:app --reload'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
 ```
 # Resources
 [Layer Cake](https://layercake.graphics/) <br>
