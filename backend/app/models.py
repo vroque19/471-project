@@ -7,6 +7,7 @@ class SleepSettings(BaseModel):
 
 
 class SleepData(BaseModel):
+    timestamp: str
     light: int  # lx
-    temp: float  # F
+    temperature: float  # F
     motion: bool

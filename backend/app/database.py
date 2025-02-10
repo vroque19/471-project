@@ -19,7 +19,7 @@ def init_db():
     c.execute(
         """
         CREATE TABLE IF NOT EXISTS settings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             date TEXT NOT NULL UNIQUE,
             bed_time TEXT NOT NULL,
             wake_time TEXT NOT NULL
@@ -33,7 +33,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS sleep_data (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT NOT NULL,
-            timestamp TEXT NOT NULL UNIQUE,
+            timestamp TEXT NOT NULL,
             light INTEGER NOT NULL,
             temperature REAL NOT NULL,
             motion BOOLEAN NOT NULL
