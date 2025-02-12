@@ -11,5 +11,5 @@ lgpio
 pigpio
 adafruit-circuitpython-ms8607
 board
-
+sqlite3
 

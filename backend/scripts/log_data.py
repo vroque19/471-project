@@ -26,17 +26,17 @@ def log_data():
     temperature = read_temp()
     motion = read_motion()
     light = read_light()
-    date = datetime.now(tz_LA).strftime("%a")
+    day = datetime.now(tz_LA).strftime("%a")
+    date = datetime.now(tz_LA).strftime("%Y-%m-%d")
     # cursor.execute(
-    #     "INSERT INTO sleep_data (date, timestamp, light, temperature, motion) VALUES (?, ?, ?, ?, ?)",
-    #     (date, timestamp, light, temperature, motion),
+    #     "INSERT INTO sensor_data (day, date, timestamp, light, temperature, motion) VALUES (?, ?, ?, ?, ?, ?)",
+    #     (day, date, timestamp, light, temperature, motion),
     # )
     # conn.commit()
-    output = (date, timestamp, light, temperature, motion)
-    d = f"Logged: {date} | {timestamp} | Light: {light} | Temp: {temperature}°C | Motion: {motion}"
+    output = (day, date, timestamp, light, temperature, motion)
+    d = f"Logged: {day} | {date} | {timestamp} | Light: {light} | Temp: {temperature}°C | Motion: {motion}"
     print(
         d
     )
     return output
-
 

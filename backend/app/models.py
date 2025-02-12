@@ -6,7 +6,7 @@ class SleepSettings(BaseModel):
     wake_time: str
 
 
-class SleepData(BaseModel):
+class SensorData(BaseModel):
     timestamp: str
     light: int  # lx
     temperature: float  # F

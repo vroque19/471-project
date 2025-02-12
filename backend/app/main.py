@@ -43,15 +43,15 @@ def read_root():
     conn.close()
     return {"tables": [table[0] for table in tables]}
     
-async def update_sleep_data_background():
+async def update_sensor_data_background():
     try:
         conn = get_db_connection()
         c = conn.cursor()
         data = log_data.log_data()
-        date, timestamp, light, temperature, motion = data
+        day, date, timestamp, light, temperature, motion = data
         c.execute(
-            "INSERT INTO sleep_data (date, timestamp, light, temperature, motion) VALUES (?, ?, ?, ?, ?)",
-            (date, timestamp, light, temperature, motion),
+            "INSERT INTO sensor_data (day, date, timestamp, light, temperature, motion) VALUES (?, ?, ?, ?, ?, ?)",
+            (day, date, timestamp, light, temperature, motion),
         )
         conn.commit()
         last_id = c.lastrowid
@@ -62,39 +62,42 @@ async def update_sleep_data_background():
         return {"success": False, "error": str(e)}
 
 def get_sleep_wake_times():
-    today = datetime.today()
-    tomorrow = today + timedelta(days=1)
+    today = (datetime.today())
+    tomorrow = (today + timedelta(days=1)).strftime("%Y-%m-%d")
     today = today.strftime("%Y-%m-%d")
-    tomorrow = tomorrow.strftime("%Y-%m-%d")
     conn = get_db_connection()
     c = conn.cursor()
-    print(today)
-    record =c.execute(f'SELECT * FROM settings WHERE date = ?', (today,)).fetchall()
+    record = c.execute('SELECT * FROM settings').fetchall()
+    row = dict(record[0])
+    bed_time = row["bed_time"]
+    wake_time = row["wake_time"]
+    if datetime.strptime(bed_time, "%H:%M") < datetime.strptime(wake_time, "%H:%M"):
+        sleep_time = datetime.strptime(f"{tomorrow} {bed_time}:00", "%Y-%m-%d %H:%M:%S")
+        wake_time = datetime.strptime(f"{tomorrow} {wake_time}:00", "%Y-%m-%d %H:%M:%S")
+    else:
+        sleep_time = datetime.strptime(f"{today} {bed_time}:00", "%Y-%m-%d %H:%M:%S")
+        wake_time = datetime.strptime(f"{tomorrow} {wake_time}:00", "%Y-%m-%d %H:%M:%S")
     
-    sleep_time = ""
-    wake_time = ""
-    for row in record:
-        # print(dict(row)["date"], "is today")
-        # print(dict(row)["bed_time"], "is bed time")
-        # print(dict(row)["wake_time"], "is wake time")
-        sleep_time = str(today) + " " + dict(row)["bed_time"] + ":01"
-        wake_time = str(tomorrow) + " " + dict(row)["wake_time"] + ":01"
     conn.close()
-    return datetime.strptime(sleep_time, "%Y-%m-%d %H:%M:%S"), datetime.strptime(wake_time, "%Y-%m-%d %H:%M:%S")
+    return sleep_time, wake_time
 
 async def log_data_in_time_window():
+    print("initiate data logging")
+    sleep_time, wake_time = get_sleep_wake_times()
     while True:
         try:
-            sleep_time, wake_time = get_sleep_wake_times()
-            # curr_time = datetime.now()
             curr_time = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S") 
+            # Log current times for debugging
+            # print(f"Current time: {curr_time}")
+            # print(f"Sleep time: {sleep_time}")
+            # print(f"Wake time: {wake_time}")
             if sleep_time <= curr_time <= wake_time:
-                print(sleep_time <= curr_time <= wake_time)
-                print(sleep_time, curr_time, wake_time)
-                await update_sleep_data_background()
+                print("In sleep window - logging data")
+                await update_sensor_data_background()
                 await asyncio.sleep(1)
             else:
-                print("Outside sleep window, waiting 1 minute")
+                sleep_time, wake_time = get_sleep_wake_times()
+                print(f"Outside sleep window, waiting 1 minute\nCurrent: {curr_time}\nSleep: {sleep_time}\nWake: {wake_time}")
                 await asyncio.sleep(60)
         except Exception as e:
             print(f"Error in background task {str(e)}")
@@ -119,41 +122,22 @@ async def shutdown_event():
         try:
             await background_task
         except asyncio.CancelledError:
-            pass
+            pass 
 
-        
-@app.post("/api/sleep_data")
-async def update_sleep_data(sleep_data: models.SleepData):
-    try:
-        conn = get_db_connection()
-        c = conn.cursor()
-        data = log_data.log_data()
-        date, timestamp, light, temperature, motion = data
-        c.execute(
-        "INSERT INTO sleep_data (date, timestamp, light, temperature, motion) VALUES (?, ?, ?, ?, ?)",
-        (date, sleep_data.timestamp, sleep_data.light, sleep_data.temperature, sleep_data.motion),
-    )
-        # print(f"Logged: {date} | {timestamp} | Light: {light} | Temp: {temperature}°C | Motion: {motion}")
-        conn.commit()
-        last_id = c.lastrowid
-        conn.close()
-        return {"success": True, "id": last_id}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/settings")
 async def update_sleep_settings(settings: models.SleepSettings):
     try:
         conn = get_db_connection()
         c = conn.cursor()
-        date = datetime.now(tz=tz_LA).strftime("%Y-%m-%d")
+        # date = datetime.now(tz=tz_LA).strftime("%Y-%m-%d")
 
         c.execute(
             """
-            INSERT OR REPLACE INTO settings (date, bed_time, wake_time)
+            REPLACE INTO settings (id, bed_time, wake_time)
             VALUES (?, ?, ?);
         """,
-            (date, settings.bed_time, settings.wake_time),
+            (1, settings.bed_time, settings.wake_time),
         )
 
         conn.commit()
@@ -207,12 +191,3 @@ def get_all_rows(table_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# @app.on_event("startup")
-# def start_background_task():
-#     loop = asyncio.get_event_loop()
-#     thread = threading.Thread(target=log_data_in_time_window, args=(loop,), daemon=True)
-#     thread.start()
-
-# @app.on_event("shutdown")
-# def stop_background_task():
-#     stop_event.set()
