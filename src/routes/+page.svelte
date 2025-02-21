@@ -1,6 +1,5 @@
 <script>
   import TimeCard from "$lib/components/TimeCard.svelte";
-  import { fly } from "svelte/transition";
   import { onMount } from "svelte";
   // import { db, settings } from "../lib/db.js";
   let time = $state(new Date());
@@ -70,11 +69,7 @@
   }, 1000);
 </script>
 
-<div
-  class="grid grid-cols-1 md:grid-cols-2 gap-8"
-  in:fly={{ x: -200, duration: 300 }}
-  out:fly={{ x: -200, duration: 300 }}
->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
   <div class="col-span-1 md:col-span-2 text-center">
     <h1 class="text-9xl font-bold mb-2">{formattedTime}</h1>
     <h2 class="text-4xl text-gray-400 mb-10">{formattedDate}</h2>

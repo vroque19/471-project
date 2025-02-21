@@ -1,6 +1,6 @@
 <script>
   import "../app.css";
-  import { fly } from "svelte/transition";
+  import { fly, crossfade } from "svelte/transition";
   let isMenuOpen = $state(false);
   function toggleMenu() {
     isMenuOpen = !isMenuOpen;
@@ -11,14 +11,15 @@
     currentPage,
   } from "../app.svelte.js";
 
-  let { children } = $props();
+  let { children, data } = $props();
+
+  const animation_delay_ms = 150;
 </script>
 
 <div
-  class="min-h-screen bg-gradient-to-br bg-gray-950 text-white flex items-center justify-center p-1 cursor-none select-none"
+  class="min-h-screen bg-gradient-to-br bg-gray-950 text-white flex items-center justify-center p-1 select-none cursor-none"
   on:touchstart={handleTouchStart}
   on:touchend={handleTouchEnd}
-  in:fly={{ x: 200, duration: 300 }}
 >
   <div
     class="bg-gray-820 rounded-3xl shadow-2xl p-4 max-w-2xl w-[800px] h-[480px] mx-auto overflow"
@@ -83,14 +84,17 @@
         {/if}
       </div>
     </nav>
-
-    {@render children()}
-    <!-- <h1>Page: {$currentPage}</h1> -->
+    {#key data.url}
+      <div
+        in:fly={{
+          x: 300,
+          duration: animation_delay_ms,
+          delay: animation_delay_ms,
+        }}
+        out:fly={{ x: -300, duration: animation_delay_ms }}
+      >
+        {@render children()}
+      </div>
+    {/key}
   </div>
 </div>
-
-<style>
-  .fly-enter {
-    position: absolute;
-  }
-</style>
