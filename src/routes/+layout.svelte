@@ -10,10 +10,12 @@
     handleTouchEnd,
     currentPage,
   } from "../app.svelte.js";
+
+  let { children } = $props();
 </script>
 
 <div
-  class="min-h-screen bg-gradient-to-br bg-gray-950 text-white flex items-center justify-center p-1 cursor-none"
+  class="min-h-screen bg-gradient-to-br bg-gray-950 text-white flex items-center justify-center p-1 cursor-none select-none"
   on:touchstart={handleTouchStart}
   on:touchend={handleTouchEnd}
   in:fly={{ x: 200, duration: 300 }}
@@ -81,7 +83,8 @@
         {/if}
       </div>
     </nav>
-    <slot />
+
+    {@render children()}
     <!-- <h1>Page: {$currentPage}</h1> -->
   </div>
 </div>
