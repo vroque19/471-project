@@ -1,11 +1,11 @@
 <script>
   import TimeCard from "$lib/components/TimeCard.svelte";
   import { onMount } from "svelte";
-  // import { db, settings } from "../lib/db.js";
   let time = $state(new Date());
   let date = $state(new Date());
-  let wake_time = $state("00:00");
-  let bed_time = $state("00:00");
+  let wake_time = $state("06:00");
+  let bed_time = $state("22:00");
+  let isLoading = $state(true); // Flag to track loading state
   $inspect("wake", wake_time);
   $inspect("sleep", bed_time);
 
@@ -27,9 +27,46 @@
   let formattedTime = $derived(
     time.toLocaleTimeString("en-US", full_time_options),
   );
+  // Function to get sunrise/sunset times
 
+  onMount(async () => {
+    isLoading = true;
+
+    // First check localStorage for user-saved preferences
+    const savedWakeTime = localStorage.getItem("wake_time");
+    const savedBedTime = localStorage.getItem("bed_time");
+
+    if (savedWakeTime && savedBedTime) {
+      // Use saved preferences if available
+      wake_time = savedWakeTime;
+      bed_time = savedBedTime;
+    } else {
+      // If no saved preferences, use sunrise/sunset times
+      try {
+        wake_time = "06:30";
+        bed_time = "10:30";
+
+        // Save these initial values to localStorage
+        saveToLocalStorage();
+
+        // You might also want to save to server
+        saveSleepSetting();
+      } catch (error) {
+        console.error("Failed to initialize:", error);
+        // Fallback values already set in state initialization
+      }
+    }
+
+    isLoading = false;
+  });
+
+  function saveToLocalStorage() {
+    localStorage.setItem("wake_time", wake_time);
+    localStorage.setItem("bed_time", bed_time);
+  }
   async function saveSleepSetting() {
     try {
+      saveToLocalStorage();
       const response = await fetch("http://localhost:8000/api/settings", {
         // Note the new URL
         method: "POST",
@@ -67,6 +104,11 @@
     time = new Date();
     date = new Date();
   }, 1000);
+  // setInterval(() => {
+  //   console.log(
+  //     `Current time from JavaScript: ${new Date().toLocaleTimeString()}`,
+  //   );
+  // }, 1000);
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -75,14 +117,13 @@
     <h2 class="text-4xl text-gray-400 mb-10">{formattedDate}</h2>
   </div>
   <TimeCard
-    icon_url={"sunrise.svg"}
-    bind:time={wake_time}
-    onTimeUpdate={handleWakeTimeUpdate}>Wake Up</TimeCard
-  >
-
-  <TimeCard
     icon_url={"sunset.svg"}
     bind:time={bed_time}
     onTimeUpdate={handleBedTimeUpdate}>Bedtime</TimeCard
+  >
+  <TimeCard
+    icon_url={"sunrise.svg"}
+    bind:time={wake_time}
+    onTimeUpdate={handleWakeTimeUpdate}>Wake Up</TimeCard
   >
 </div>
