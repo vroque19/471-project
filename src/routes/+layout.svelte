@@ -17,12 +17,12 @@
 </script>
 
 <div
-  class="min-h-screen bg-gradient-to-br bg-gray-950 text-white flex items-center justify-center p-1 select-none cursor-none"
+  class="min-h-screen bg-gradient-to-br bg-gray-950 text-white flex items-center justify-center p-1 select-none"
   on:touchstart={handleTouchStart}
   on:touchend={handleTouchEnd}
 >
   <div
-    class="bg-gray-820 rounded-3xl shadow-2xl p-4 max-w-2xl w-[800px] h-[480px] mx-auto overflow"
+    class="bg-gray-820 rounded-3xl shadow-2xl p-4 max-w-2xl w-[800px] h-[480px] mx-auto overflow cursor-none"
   >
     <nav class=" w-1/6">
       <div
