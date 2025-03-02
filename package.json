@@ -26,7 +26,11 @@
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
+    "d3": "^7.9.0",
+    "d3-array": "^3.2.4",
+    "d3-scale": "^4.0.2",
     "layercake": "^8.4.2",
+    "layerchart": "^1.0.3",
     "svelty-picker": "^5.2.9"
   }
 }
