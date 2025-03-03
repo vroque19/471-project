@@ -11,5 +11,8 @@ lgpio
 pigpio
 adafruit-circuitpython-ms8607
 board
+seaborn
+matplotlib
+pandas
+numpy
 sqlite3
-
