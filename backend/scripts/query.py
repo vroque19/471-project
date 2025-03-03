@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import pandas as pd
 from datetime import datetime
 
 DATABASE_PATH = "../instance/sleeptracker.db"
@@ -11,23 +12,34 @@ def get_db_connection():
     return conn
 
 
-query = """
+def get_sensor_data():
+    query = """
 SELECT * 
 FROM sensor_data 
 WHERE 
     (date = '2025-02-27' AND timestamp >= '23:00:00') 
     OR 
-    (date = '2025-02-28' AND timestamp <= '07:50:00')
+    (date = '2025-02-28' AND timestamp <= '05:50:00')
 ORDER BY date, timestamp;
 
 """
-
-
-def get_sensor_data():
     conn = get_db_connection()
-    data = conn.execute(query).fetchall()
+    df = pd.read_sql_query(query, conn)
     conn.close()
-    return data
+
+    df["timestamp"] = pd.to_datetime(
+        df["date"] + " " + df["timestamp"], format="%Y-%m-%d %H:%M:%S"
+    )
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+
+    # Now extract the date part of the 'timestamp' column
+    # df["date_part"] = df["timestamp"].dt.date
+
+    # Print the result
+    # print(df[["timestamp", "date_part"]])
+    df["hour_bin"] = df["timestamp"].dt.floor("h")
+    # print(df["timestamp"])
+    return df
 
 
 def main():
