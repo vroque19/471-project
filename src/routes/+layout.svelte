@@ -31,7 +31,7 @@
         <button
           data-collapse-toggle="navbar-hamburger"
           type="button"
-          class="inline-flex items-center justify-center p-2 w-10 h-10 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+          class="inline-flex items-center justify-center pt-5 pb-1 w-12 h-10 text-sm text-gray-500 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 cursor-none z-40"
           aria-controls="navbar-hamburger"
           aria-expanded="false"
           on:click={toggleMenu}
@@ -68,7 +68,7 @@
               <li>
                 <a
                   href="daily"
-                  class="block py-2 px-3 text-white rounded-sm hover:bg-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  class="block py-2 px-3 text-l text-white rounded-sm hover:bg-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                   >Daily Sleep Score</a
                 >
               </li>
