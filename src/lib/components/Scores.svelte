@@ -25,7 +25,7 @@
     />
   {:else}
     <div class="flex items-center justify-center h-64 text-xl text-gray-500">
-      No Scores
+      No Scores Found
     </div>
   {/if}
 </div>

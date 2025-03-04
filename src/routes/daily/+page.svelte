@@ -3,7 +3,9 @@
   import DailyData from "$lib/components/DailyData.svelte";
 </script>
 
-<div class=" w-[800px] h-[480px]">
+<div
+  class="grid grid-cols-1 place-content-center w-[800px] h-[480px] rounded-3xl shadow-2xl -mt-20 z-0 -ml-10"
+>
   <!-- border for dev -->
   <DailyData />
 </div>
