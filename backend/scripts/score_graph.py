@@ -24,23 +24,23 @@ def main():
   }
   df = pd.DataFrame(data)
   sns.set_style("darkgrid")
-  fig, ax = plt.subplots(figsize=(10, 6))
+  fig, ax = plt.subplots(figsize=(14, 7))
   fig.set_facecolor("#020713")  # Set figure background color
   ax.set_facecolor("#020713")  # Set axes background color
 
   ax = sns.lineplot(x="Day", y="Sleep Score", data=df, marker="o", linewidth=2.5, color=LIGHT_COLOR)
 
   # Customize title and labels
-  ax.set_title("Sleep Scores Throughout the Week", fontsize=16, fontweight='bold', color=AXES_COLOR)
-  ax.set_ylabel("Sleep Score", fontsize=14, color=AXES_COLOR)
-  ax.set_xlabel("Day of the Week", fontsize=14, color=AXES_COLOR)
+  # ax.set_title("Sleep Scores Throughout the Week", fontsize=16, fontweight='bold', color=AXES_COLOR)
+  ax.set_ylabel("Sleep Score", fontsize=16, color=AXES_COLOR)
+  ax.set_xlabel("Day of the Week", fontsize=16, color=AXES_COLOR)
 
   # Set custom y-ticks at 0, 25, 50, 75, and 100 with labels
   ax.set_yticks([0, 25, 50, 75, 100])
-  ax.set_yticklabels(["", "Poor", "Fair", "Good", "Optimal"], fontsize=12, color=AXES_COLOR)
+  ax.set_yticklabels(["", "Poor", "Fair", "Good", "Optimal"], fontsize=16, color=AXES_COLOR)
 
   # Rotate x-axis labels for better readability
-  plt.xticks(rotation=30, fontsize=12, color=AXES_COLOR)
+  plt.xticks(rotation=30, fontsize=16, color=AXES_COLOR)
 
 
 
