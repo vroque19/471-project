@@ -15,17 +15,17 @@
   let imageNotFound = false;
 </script>
 
-<div class="text-center text-2xl -ml-20 -mb-10 z-10">Daily Sleep Data</div>
+<div class="text-center text-2xl -ml-20 -mb-10 z-10">Sleep Scores</div>
 <div class="flex justify-center -mb-1">
   {#if !imageNotFound}
     <img
-      src={`/charts/${file_name}.png`}
-      alt="daily sleep data"
+      src={`/scores/${file_name}.png`}
+      alt="weekly score chart"
       on:error={() => (imageNotFound = true)}
     />
   {:else}
     <div class="flex items-center justify-center h-64 text-xl text-gray-500">
-      No Sleep Data
+      No Scores
     </div>
   {/if}
 </div>
