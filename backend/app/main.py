@@ -81,6 +81,10 @@ def get_sleep_wake_times():
     conn.close()
     return sleep_time, wake_time
 
+async def calc_sleep_score():
+    ...
+
+
 async def log_data_in_time_window():
     print("initiate data logging")
     sleep_time, wake_time = get_sleep_wake_times()
@@ -124,7 +128,27 @@ async def shutdown_event():
         except asyncio.CancelledError:
             pass 
 
-
+@app.post("/api/settings")
+async def update_sleep_scores(scores: models.SleepScores):
+    try:
+        day = datetime.now(tz_LA).strftime("%a")
+        date = datetime.now(tz=tz_LA).strftime("%Y-%m-%d")
+        score = calc_sleep_score()
+        conn = get_db_connection()
+        c = conn.cursor()
+        c.execute(
+            """
+            INSERT INTO sleep_scores (date, day, score)
+            VALUES (?, ?, ?)
+            """,  (date, day, score),
+            )
+        conn.commit()
+        last_id = c.lastrowid
+        conn.close()
+        return {"success": True, "id": last_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @app.post("/api/settings")
 async def update_sleep_settings(settings: models.SleepSettings):
     try:

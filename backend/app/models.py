@@ -11,3 +11,8 @@ class SensorData(BaseModel):
     light: int  # lx
     temperature: float  # F
     motion: bool
+
+class SleepScores(BaseModel):
+    date: str
+    day: str
+    score: int

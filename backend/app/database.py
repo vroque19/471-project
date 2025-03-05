@@ -40,6 +40,17 @@ def init_db():
         )
     """
     )
+
+    c.execute(
+        """
+            CREATE TABLE IF NOT EXISTS sleep_scores (
+            if INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            day TEXT NOT NULL,
+            score INTEGER NOT NULL
+            )
+        """
+    )
     c.execute(
         """
             CREATE TABLE IF NOT EXISTS sensor_data_archive (
