@@ -1,35 +1,10 @@
-# senior design project
-## Developing
+# CatNap
+A Smart Sleep System designed to align with your circadian rhythm. 
 
 # TODO
-1. add sleep data view
-2. add swipe feature
-3. send sleep data to a database (.csv or db)
-4. interface website with LIFX light 
+1. configure automated sleep data push/ sleep score pages
+2. configure automated writes to the LIFX light
 
-## Running
-start a development server:
-
-```bash
-npm run dev
-```
-
-# or start the server and open the app in a new browser tab
-```
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 
 ## Systemd Service Files
 
