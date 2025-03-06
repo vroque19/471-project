@@ -16,7 +16,7 @@ log_data_path = os.path.abspath(
 )
 sys.path.insert(0, light_path)
 sys.path.insert(0, log_data_path)
-from scripts import auth, log_data
+from scripts import auth, log_data, score_graph, graph, query
 
 
 app = FastAPI()
@@ -81,22 +81,46 @@ def get_sleep_wake_times():
     conn.close()
     return sleep_time, wake_time
 
-async def calc_sleep_score():
-    ...
+
+
+def calc_sleep_score():
+    return 90
+
+async def run_at_wake_time():
+    while True:
+        try:
+            sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
+            curr_time = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S")
+            today = (curr_time.date())
+
+            start_time = wake_time.replace(year=today.year, month=today.month, day=today.day)
+            if curr_time == start_time:
+                print("wake time... calculating")
+                score = calc_sleep_score()
+                await asyncio.sleep(1)
+                graph.main()
+                await asyncio.sleep(1)
+                score_graph.main()
+                await asyncio.sleep(3600)
+            else:
+                print("not wake time... waiting...")
+                sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
+            await asyncio.sleep(60)
+        except Exception as e:
+            print(f"Error in wake-up script task: {str(e)}")
+            await asyncio.sleep(30)  # Retry after 30 seconds
+
+    
 
 
 async def log_data_in_time_window():
-    print("initiate data logging")
     sleep_time, wake_time = get_sleep_wake_times()
     while True:
         try:
             curr_time = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S") 
-            # Log current times for debugging
-            # print(f"Current time: {curr_time}")
-            # print(f"Sleep time: {sleep_time}")
-            # print(f"Wake time: {wake_time}")
+
             if sleep_time <= curr_time <= wake_time:
-                print("In sleep window - logging data")
+                # print("In sleep window - logging data")
                 await update_sensor_data_background()
                 await asyncio.sleep(1)
             else:
@@ -108,27 +132,31 @@ async def log_data_in_time_window():
             await asyncio.sleep(60)
 
 background_task = None
+background_task2 = None
 
-def start_background_monitoring():
-    global background_task
+def start_background_tasks():
+    global background_task, background_task2
     if background_task is None:
         background_task = asyncio.create_task(log_data_in_time_window())
+    if background_task2 is None:
+        background_task2 = asyncio.create_task(run_at_wake_time())
 
 @app.on_event("startup")
 async def startup_event():
-    start_background_monitoring()
+    start_background_tasks()
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    global background_task
-    if background_task:
-        background_task.cancel()
+    global background_task, background_task2
+    for task in [background_task, background_task2]:
+        if task:
+            task.cancel()
         try:
             await background_task
         except asyncio.CancelledError:
             pass 
 
-@app.post("/api/settings")
+@app.post("/api/sleepscores")
 async def update_sleep_scores(scores: models.SleepScores):
     try:
         day = datetime.now(tz_LA).strftime("%a")
@@ -155,7 +183,7 @@ async def update_sleep_settings(settings: models.SleepSettings):
         conn = get_db_connection()
         c = conn.cursor()
         # date = datetime.now(tz=tz_LA).strftime("%Y-%m-%d")
-
+        print(settings.bed_time)
         c.execute(
             """
             REPLACE INTO settings (id, bed_time, wake_time)
