@@ -10,7 +10,8 @@ from mpl_toolkits.axes_grid1 import host_subplot
 
 tz_LA = pytz.timezone("America/Los_Angeles")    
 
-PLOT_PATH = "../../static/scores/"
+# PLOT_PATH = "../../static/scores/"
+PLOT_PATH = "../static/scores/"
 FILE_NAME = datetime.datetime.now(tz_LA).strftime("%Y-%m-%d")
 FACE_COLOR = "#020713"
 FACE_COLOR = "#020713"

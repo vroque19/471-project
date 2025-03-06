@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from mpl_toolkits.axes_grid1 import host_subplot
 
-from query import get_sensor_data
+from .query import get_sensor_data
 
 # === 🎨 Define Colors === #
 FACE_COLOR = "#020713"
@@ -19,7 +19,7 @@ LIGHT_COLOR = "#4846E2"
 TEMP_TEXT_COLOR = "#4A60EB"
 
 
-PLOT_PATH = "../../static/charts/"
+PLOT_PATH = "../static/charts/"
 # PLOT_PATH = "../charts/"
 tz_LA = pytz.timezone("America/Los_Angeles")    
 
