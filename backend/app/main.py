@@ -92,10 +92,10 @@ async def run_at_wake_time():
             sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
             curr_time = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S")
             today = (curr_time.date())
-
+            two_minutes_later = today + timedelta(minutes=2)
             start_time = wake_time.replace(year=today.year, month=today.month, day=today.day)
-            if curr_time == start_time:
-                print("wake time... calculating")
+            if curr_time >= start_time and start_time <= two_minutes_later:
+                print("time to get graphs... calculating")
                 score = calc_sleep_score()
                 await asyncio.sleep(1)
                 graph.main()

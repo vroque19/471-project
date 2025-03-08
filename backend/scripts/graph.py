@@ -20,6 +20,7 @@ TEMP_TEXT_COLOR = "#4A60EB"
 
 
 PLOT_PATH = "../static/charts/"
+# PLOT_PATH = "../../static/charts/"
 # PLOT_PATH = "../charts/"
 tz_LA = pytz.timezone("America/Los_Angeles")    
 
