@@ -103,14 +103,14 @@ def main():
     # Set Labels & Ranges
     host.set_xlabel("Time", color=AXES_COLOR, fontweight="bold", fontsize=25)
     host.set_ylabel("Light Intensity (Lx)", fontsize=25)
-    host.set_ylim(light_min - 0.3, light_max + 1)
+    host.set_ylim(light_min - 0.1, light_max + 1)
     # plt.margins(x=1, y=2)
 
     ax1.set_ylabel("Temperature (°C)", fontsize=25)
-    ax1.set_ylim(temp_min -1, temp_max + 1)
+    ax1.set_ylim(temp_min - 0.5, temp_max + 1)
 
     ax2.set_ylabel("Motion (Boolean)", fontsize=25)
-    ax2.set_ylim(-0.02, 1)
+    ax2.set_ylim(-0.1, 1)
     host.margins(y=0.1)
 
     # Optionally, adjust tick label sizes
