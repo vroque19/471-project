@@ -44,7 +44,7 @@
       // If no saved preferences, use sunrise/sunset times
       try {
         wake_time = "06:30";
-        bed_time = "10:30";
+        bed_time = "22:30";
 
         // Save these initial values to localStorage
         saveToLocalStorage();
@@ -61,6 +61,7 @@
   });
 
   function saveToLocalStorage() {
+    console.log("saved to local storage", wake_time, bed_time);
     localStorage.setItem("wake_time", wake_time);
     localStorage.setItem("bed_time", bed_time);
   }
