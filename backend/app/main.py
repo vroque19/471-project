@@ -17,10 +17,18 @@ log_data_path = os.path.abspath(
 graphs_path = os.path.abspath(
     "/home/ubuntu/repos/471-project/backend/scripts/graph.py"
 )
+score_graph_path = os.path.abspath(
+    "/home/ubuntu/repos/471-project/backend/scripts/score_graph.py"
+)
+score_path = os.path.abspath(
+    "/home/ubuntu/repos/471-project/backend/scripts/calc_score.py"
+)
 sys.path.insert(0, light_path)
 sys.path.insert(0, log_data_path)
 sys.path.insert(0, graphs_path)
-from scripts import auth, log_data, score_graph, graph, query
+sys.path.insert(0, score_graph_path)
+sys.path.insert(0, score_path)
+from scripts import auth, log_data, score_graph, graph, query, calc_score
 
 
 app = FastAPI()
@@ -46,6 +54,7 @@ def read_root():
     tables = c.fetchall()
     conn.close()
     return {"tables": [table[0] for table in tables]}
+
     
 async def update_sensor_data_background():
     try:
@@ -85,10 +94,25 @@ def get_sleep_wake_times():
     conn.close()
     return sleep_time, wake_time
 
+async def update_sleep_score_background():
+    try:
+        date, day, score = calc_score.main()
+        conn = get_db_connection()
+        c = conn.cursor()
+        c.execute(
+            """
+            INSERT INTO sleep_scores (date, day, score)
+            VALUES (?, ?, ?)
+            """,  (date, day, score),
+            )
+        conn.commit()
+        last_id = c.lastrowid
+        conn.close()
+        return {"success": True, "id": last_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-def calc_sleep_score():
-    return 90
 
 async def run_at_wake_time():
     while True:
@@ -100,9 +124,10 @@ async def run_at_wake_time():
             today = (curr_time.date())
             start_time = wake_time.replace(year=today.year, month=today.month, day=today.day)
             two_minutes_later = start_time + timedelta(minutes=2)
+            # allow 2 minutes for graphs to upload
             if curr_time >= start_time and curr_time <= two_minutes_later:
                 print("time to get graphs... calculating")
-                score = calc_sleep_score()
+                # await update_sleep_score_background()
                 await asyncio.sleep(1)
                 graph.main()
                 await asyncio.sleep(1)
@@ -165,9 +190,7 @@ async def shutdown_event():
 @app.post("/api/sleepscores")
 async def update_sleep_scores(scores: models.SleepScores):
     try:
-        day = datetime.now(tz_LA).strftime("%a")
-        date = datetime.now(tz=tz_LA).strftime("%Y-%m-%d")
-        score = calc_sleep_score()
+        date, day, score = calc_score.main()
         conn = get_db_connection()
         c = conn.cursor()
         c.execute(
