@@ -20,7 +20,7 @@ AXES_COLOR = "#E5E7EB"
 
 def main():
   data = {
-      "Day": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      "Day": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
       "Sleep Score": [85, 78, 82, 90, 88, 76, 80]  # Scores out of 100
   }
   df = pd.DataFrame(data)
@@ -34,7 +34,7 @@ def main():
   # Customize title and labels
   # ax.set_title("Sleep Scores Throughout the Week", fontsize=16, fontweight='bold', color=AXES_COLOR)
   ax.set_ylabel("Sleep Score", fontsize=16, color=AXES_COLOR)
-  ax.set_xlabel("Day of the Week", fontsize=16, color=AXES_COLOR)
+  ax.set_xlabel("", fontsize=16, color=AXES_COLOR)
 
   # Set custom y-ticks at 0, 25, 50, 75, and 100 with labels
   ax.set_yticks([0, 25, 50, 75, 100])
