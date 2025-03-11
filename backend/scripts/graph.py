@@ -36,11 +36,6 @@ def analyze_data(df):
         .reset_index()
     )
 
-    # print("hourly:", df_hourly[["hour_bin"], ["light"], ["temperature"], ["motion"]])
-    # print(
-    #     "times only", pd.to_datetime(df_hourly["hour_bin"], format="%H:%M:%S").dt.time
-    # )
-    # df_hourly = pd.to_datetime(df_hourly["hour_bin"], format="%H:%M:%S").dt.time
     time_values = df_hourly["hour_bin"]
     time_values = [str(x).split(" ")[1][:5] for x in time_values]
     light_values = df_hourly["light"]
