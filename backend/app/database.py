@@ -45,7 +45,7 @@ def init_db():
         """
             CREATE TABLE IF NOT EXISTS sleep_scores (
             if INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
+            date TEXT NOT NULL UNIQUE,
             day TEXT NOT NULL,
             score INTEGER NOT NULL
             )
