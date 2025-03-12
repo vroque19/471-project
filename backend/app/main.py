@@ -127,7 +127,7 @@ async def run_at_wake_time():
             start_time = wake_time.replace(year=today.year, month=today.month, day=today.day)
             two_minutes_later = start_time + timedelta(minutes=2)
             # allow 2 minutes for graphs to upload
-            if curr_time >= start_time:
+            if curr_time >= start_time and curr_time <= two_minutes_later:
                 print("time to get graphs... calculating")
                 await update_sleep_score_background()
                 await asyncio.sleep(1)
