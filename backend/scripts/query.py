@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 DATABASE_PATH = "instance/sleeptracker.db"
+# DATABASE_PATH = "../instance/sleeptracker.db"
 
 
 def get_db_connection():
@@ -64,6 +65,37 @@ ORDER BY date, timestamp;
     # print(df["timestamp"])
     return df
 
+def get_score_data():
+    today = datetime.today()
+    sleep_day = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+    today = today.strftime("%Y-%m-%d")
+    print(sleep_day)    
+    wake_time, bed_time = get_sleep_settings()
+    if datetime.strptime(bed_time, "%H:%M") < datetime.strptime(wake_time, "%H:%M"):
+        sleep_day = today
+    
+    query = """
+SELECT * 
+FROM sensor_data 
+WHERE 
+    (date = '{}' AND timestamp >= '{}') 
+    OR 
+    (date = '{}' AND timestamp <= '{}')
+ORDER BY date, timestamp;
+
+"""
+
+    conn = get_db_connection()
+    # df = pd.read_sql_query(query, conn)
+    
+    df = pd.read_sql_query(query.format(sleep_day, bed_time, today, wake_time), con=conn)
+    conn.close()
+
+    df["timestamp"] = pd.to_datetime(
+        df["date"] + " " + df["timestamp"], format="%Y-%m-%d %H:%M:%S"
+    )
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    return df
 
 def main():
     # print(get_sensor_data())

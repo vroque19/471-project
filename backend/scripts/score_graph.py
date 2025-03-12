@@ -24,6 +24,9 @@ def main():
       "Sleep Score": [85, 78, 82, 90, 88, 76, 80]  # Scores out of 100
   }
   df = pd.DataFrame(data)
+  if df.empty:
+      print("No data found for the given time range. ( score_graph.py )")
+      return
   sns.set_style("darkgrid")
   fig, ax = plt.subplots(figsize=(14, 7))
   fig.set_facecolor("#020713")  # Set figure background color

@@ -26,10 +26,6 @@ tz_LA = pytz.timezone("America/Los_Angeles")
 
 
 def analyze_data(df):
-    if df.empty:
-        print("No data found for the given time range.")
-        return
-
     df_hourly = (
         df.groupby("hour_bin")
         .agg({"temperature": "mean", "motion": "mean", "light": "mean"})
@@ -60,6 +56,9 @@ def analyze_data(df):
 
 def main():
     df = get_sensor_data()
+    if df.empty:
+        print("No data found for the given time range. (graph.py)")
+        return
     plt.rcParams["figure.figsize"] = (14, 8)
     # plt.title("Daily Sleep Data", fontsize=40, fontweight='bold', color=AXES_COLOR)
     host = host_subplot(111)

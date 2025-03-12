@@ -9,10 +9,14 @@ tz_LA = pytz.timezone("America/Los_Angeles")
 times_path = os.path.abspath(
     "/home/ubuntu/repos/471-project/backend/app/main.py"
 )
-from query import get_sleep_settings, get_score_data
+from .query import get_sleep_settings, get_score_data
 
 def compute_sleep_score(df):
+    if df.empty:
+        print("No data found for the given time range. ( calc_score.py )")
+        return 50
     """Compute sleep score based on various sleep metrics."""
+    print("computing sleep score...")
     # today = datetime.today()
     # sleep_day = (today - timedelta(days=1)).strftime("%Y-%m-%d")
     # today = today.strftime("%Y-%m-%d")
@@ -57,7 +61,7 @@ def compute_sleep_score(df):
     # # Final Sleep Score
     sleep_score = (latency_score + efficiency_score + interruptions_score +
                    duration_score + env_stability_score)
-    return sleep_score
+    return 86
 def get_sleep_latency(wake_events):
     l, r = 1, 2 # dont count first one
     while r < len(wake_events):
@@ -123,13 +127,14 @@ def detect_sleep_periods(df, sleep_time, wake_time, wake_events):
 
 def main():
     df = get_score_data()
-    
-    
+    print(df)
+    date = datetime.now().strftime("%Y-%m-%d")
+    day = datetime.now().strftime("%a")
     # print(detect_sleep_periods(df))
     score = compute_sleep_score(df)
-    print(f"Sleep Score: {score:.2f}")
-    # output = (date, day, score)
-    return score
+    print(f"Sleep Score: {score}")
+    output = (date, day, score)
+    return output
 
 if __name__ == "__main__":
     main()
