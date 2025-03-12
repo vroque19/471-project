@@ -97,6 +97,7 @@ def get_sleep_wake_times():
 async def update_sleep_score_background():
     try:
         date, day, score = calc_score.main()
+        print("score: ", score)
         conn = get_db_connection()
         c = conn.cursor()
         c.execute(
@@ -110,6 +111,7 @@ async def update_sleep_score_background():
         conn.close()
         return {"success": True, "id": last_id}
     except Exception as e:
+        print(f"Error updating sleep score: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -125,9 +127,9 @@ async def run_at_wake_time():
             start_time = wake_time.replace(year=today.year, month=today.month, day=today.day)
             two_minutes_later = start_time + timedelta(minutes=2)
             # allow 2 minutes for graphs to upload
-            if curr_time >= start_time and curr_time <= two_minutes_later:
+            if curr_time >= start_time:
                 print("time to get graphs... calculating")
-                # await update_sleep_score_background()
+                await update_sleep_score_background()
                 await asyncio.sleep(1)
                 graph.main()
                 await asyncio.sleep(1)
