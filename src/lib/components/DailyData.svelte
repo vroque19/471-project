@@ -10,7 +10,7 @@
   let year = $derived(date.getFullYear());
   let month = formattedDate.slice(0, 2);
   let day = formattedDate.slice(3, 5);
-  let file_name = `${year}-${month}-${day}`;
+  let file_name = `${year}-${month}-${day}-daily`;
   console.log("file_name", file_name);
   let imageNotFound = false;
 </script>
