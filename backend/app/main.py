@@ -29,7 +29,7 @@ sys.path.insert(0, graphs_path)
 sys.path.insert(0, score_graph_path)
 sys.path.insert(0, score_path)
 from scripts import auth, log_data, score_graph, graph, query, calc_score
-
+graphs_uploaded = False
 
 app = FastAPI()
 
@@ -102,7 +102,7 @@ async def update_sleep_score_background():
         c = conn.cursor()
         c.execute(
             """
-            INSERT INTO sleep_scores (date, day, score)
+            INSERT OR REPLACE INTO sleep_scores (date, day, score)
             VALUES (?, ?, ?)
             """,  (date, day, score),
             )
@@ -117,6 +117,8 @@ async def update_sleep_score_background():
 
 
 async def run_at_wake_time():
+    # check and upload graphs at wake time
+    global graphs_uploaded
     while True:
         try:
             sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
@@ -127,24 +129,23 @@ async def run_at_wake_time():
             start_time = wake_time.replace(year=today.year, month=today.month, day=today.day)
             two_minutes_later = start_time + timedelta(minutes=2)
             # allow 2 minutes for graphs to upload
-            if curr_time >= start_time and curr_time <= two_minutes_later:
+            if curr_time >= start_time and not graphs_uploaded:
                 print("time to get graphs... calculating")
                 await update_sleep_score_background()
                 await asyncio.sleep(1)
                 graph.main()
                 await asyncio.sleep(1)
                 score_graph.main()
-                await asyncio.sleep(3600)
-            else:
+                graphs_uploaded = True
+                # await asyncio.sleep(3600)
+            if curr_time < start_time:
+                graphs_uploaded = False
                 print("not wake time... waiting...")
                 sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
             await asyncio.sleep(60)
         except Exception as e:
             print(f"Error in wake-up script task: {str(e)}")
             await asyncio.sleep(30)  # Retry after 30 seconds
-
-    
-
 
 async def log_data_in_time_window():
     sleep_time, wake_time = get_sleep_wake_times()
