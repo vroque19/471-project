@@ -95,7 +95,40 @@ ORDER BY date, timestamp;
         df["date"] + " " + df["timestamp"], format="%Y-%m-%d %H:%M:%S"
     )
     df["timestamp"] = pd.to_datetime(df["timestamp"])
-    return df
+    return df, sleep_day, today, bed_time, wake_time
+
+
+def get_weekly_scores():
+    days_of_week = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    data = {"Day": days_of_week, "Sleep Score": [None] * 7}  # Initialize with None
+    today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    weekday = today.weekday()
+    start_of_week = today - timedelta(days=(weekday + 1) % 7)
+    today = today.strftime("%Y-%m-%d")
+    start_of_week = start_of_week.strftime("%Y-%m-%d")
+    query = """
+SELECT s.day, s.score
+    FROM sleep_scores s
+    INNER JOIN (
+        SELECT date, MAX(if) as max_id  -- Assuming 'id' is an auto-incrementing column
+        FROM sleep_scores
+        WHERE date >= '{}' AND date <= '{}'
+        GROUP BY date
+    ) latest ON s.if = latest.max_id
+    ORDER BY s.date;
+"""
+    conn = get_db_connection()
+    print("start of week and today: ", start_of_week, today)
+    db_scores = pd.read_sql_query(query.format(start_of_week, today), con=conn)
+    conn.close()
+    
+    # Populate scores into the data dictionary
+    for _, row in db_scores.iterrows():
+        day_index = days_of_week.index(row['day'])
+        print(day_index)
+        data["Sleep Score"][day_index] = row['score']  # Ensure score is a float for consistency
+        print(data)
+    return data
 
 def main():
     # print(get_sensor_data())
