@@ -5,16 +5,15 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from test_query import get_weekly_scores
 
 tz_LA = pytz.timezone("America/Los_Angeles")
-PLOT_PATH = "../static"
+PLOT_PATH = "../static/"
 FILE_NAME = datetime.datetime.now(tz_LA).strftime("%Y-%m-%d")
 FACE_COLOR = "#020713"
 LIGHT_COLOR = "#4846E2"
 AXES_COLOR = "#E5E7EB"
 
-# Assume this function fetches the latest sleep score, date, and day
-from test_query import get_weekly_scores
 
 
 def main():
