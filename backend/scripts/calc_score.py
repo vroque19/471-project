@@ -14,7 +14,7 @@ from .query import get_sleep_settings, get_score_data
 def compute_sleep_score(df, sleep_time, wake_time):
     if df.empty:
         print("No data found for the given time range. ( calc_score.py )")
-        return 50
+        return 0
     
     """Compute sleep score based on various sleep metrics."""
     print("computing sleep score...\n\n")
