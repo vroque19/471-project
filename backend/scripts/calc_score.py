@@ -41,11 +41,12 @@ def compute_sleep_score(df, sleep_time, wake_time):
     sleep_time = df['timestamp'][0]
     sleep_latency = (sleep_start_time - sleep_time).total_seconds() / 60
     # print("sleep latency (hours)", sleep_latency/60, "sleep time", sleep_time)
-    latency_score = 20 * max(0, 1 - (sleep_latency - 15) / 15)
+    latency_score = 20 * max(0, (TIB - sleep_latency) / TIB)
+
     
     # # Sleep Efficiency 30%
     sleep_efficiency = (TST / TIB) * 100
-    efficiency_score = 30 * max(0, 1 - (85 - sleep_efficiency) / 10)
+    efficiency_score = 30 * max(0, 1 - ((85 - sleep_efficiency) / 100))
     
     # # Sleep Interruptions 10% 
     interruptions_score = max(0, 10 - (TIB/ len(wake_periods)))
@@ -78,8 +79,8 @@ def get_sleep_latency(wake_events):
             break
         l += 1
         r += 1
-    print("last wake before sleep:", r, wake_events[r])
-    return wake_events[r]['timestamp']
+    print("last wake before sleep:", l, wake_events[l])
+    return wake_events[l]['timestamp']
 
 
 def detect_sleep_periods(df, sleep_time, wake_time, wake_events):
