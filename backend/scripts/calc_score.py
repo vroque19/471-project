@@ -28,6 +28,20 @@ def compute_sleep_score(df, sleep_time, wake_time):
     
     wake_periods = []
     num_wake_events = detect_sleep_periods(df, sleep_time=sleep_time, wake_time=wake_time, wake_events=wake_periods)
+    if num_wake_events == 0:
+        print("no wake event")
+        wake_periods.append({
+                'timestamp': df['timestamp'][0],
+                'light': 0,
+                'motion': 0
+            })
+        wake_periods.append({
+                'timestamp': df['timestamp'][0],
+                'light': 0,
+                'motion': 0
+            })
+        print(len(wake_periods))
+        
 
     # # Total Time in Bed (TIB) and Total Sleep Time (TST)
     TIB = abs((wake_time - sleep_time).total_seconds()) / 60  # in minutes
@@ -36,7 +50,7 @@ def compute_sleep_score(df, sleep_time, wake_time):
     # print("TST (hours): ", TST/60)
 
     # # Sleep Latency 20%
-    sleep_start_time = get_sleep_latency(wake_periods)
+    sleep_start_time = get_sleep_latency(wake_periods) # if perfect sleep latency
     # print(sleep_start_time)
     sleep_time = df['timestamp'][0]
     sleep_latency = (sleep_start_time - sleep_time).total_seconds() / 60
@@ -71,6 +85,8 @@ def compute_sleep_score(df, sleep_time, wake_time):
     return sleep_score
 
 def get_sleep_latency(wake_events):
+    # if len(wake_events) <= 0:
+    #     wake_events.append()
     l, r = 1, 2 # dont count first one
     while r < len(wake_events):
         time_diff = abs((wake_events[l]['timestamp'] - wake_events[r]['timestamp']).total_seconds())
@@ -110,7 +126,7 @@ def detect_sleep_periods(df, sleep_time, wake_time, wake_events):
             
     
     df_resampled = df.resample('30S', on='timestamp').mean().reset_index()
-
+    print(df_resampled)
     for i, row in df_resampled.iterrows():
         current_time = row['timestamp']
         if prev_time is None:
@@ -129,6 +145,7 @@ def detect_sleep_periods(df, sleep_time, wake_time, wake_events):
         
         prev_time = current_time
     print(("wake events: ", len(wake_events)))
+    
     return len(wake_events)
 
 def get_sleep_times(sleep_day, today, bed_time, wake_time):
