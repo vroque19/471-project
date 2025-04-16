@@ -56,9 +56,6 @@ def analyze_data(df):
 
 def main():
     df = get_sensor_data()
-    if df.empty:
-        print("No data found for the given time range. (graph.py)")
-        return
     plt.rcParams["figure.figsize"] = (14, 8)
     # plt.title("Daily Sleep Data", fontsize=40, fontweight='bold', color=AXES_COLOR)
     host = host_subplot(111)
@@ -69,52 +66,59 @@ def main():
     ax1 = host.twinx()  # temp
     ax2 = host.twinx()  # motion
     ax2.spines["right"].set_position(("outward", 88))  # Offset third axis
+    if df.empty:
+        print("No data found for the given time range. (graph.py)")
+        host.set_xlabel("Time", color=AXES_COLOR, fontweight="bold", fontsize=25)
+        host.set_ylabel("Light Intensity (Lx)", fontsize=25)
+        ax1.set_ylabel("Temperature (°C)", fontsize=25)
+        ax2.set_ylabel("Motion (Boolean)", fontsize=25)
+        host.text(0.5, 0.5, "No data available", ha='center', va='center', fontsize=30, color=AXES_COLOR, transform=host.transAxes)
+    else:
+        (
+            time_labels,
+            light_values,
+            temp_values,
+            motion_values,
+            light_min,
+            light_max,
+            temp_min,
+            temp_max,
+        ) = analyze_data(df)
+        print(time_labels, light_values, motion_values, temp_values)
+        (p1,) = host.plot(
+            time_labels,
+            light_values,
+            color=LIGHT_COLOR,
+            linewidth=3,
+            label="Light Intensity",
+        )
 
-    (
-        time_labels,
-        light_values,
-        temp_values,
-        motion_values,
-        light_min,
-        light_max,
-        temp_min,
-        temp_max,
-    ) = analyze_data(df)
-    print(time_labels, light_values, motion_values, temp_values)
-    (p1,) = host.plot(
-        time_labels,
-        light_values,
-        color=LIGHT_COLOR,
-        linewidth=3,
-        label="Light Intensity",
-    )
+        (p2,) = ax1.plot(time_labels, temp_values, linewidth=3, label="Temperature", color=TEMP_COLOR)
+        p3 = ax2.scatter(
+            time_labels, motion_values, label="Motion", color=MOTION_COLOR, marker="o", s=100
+        )
 
-    (p2,) = ax1.plot(time_labels, temp_values, linewidth=3, label="Temperature", color=TEMP_COLOR)
-    p3 = ax2.scatter(
-        time_labels, motion_values, label="Motion", color=MOTION_COLOR, marker="o", s=100
-    )
+        # Set Labels & Ranges
+        host.set_xlabel("Time", color=AXES_COLOR, fontweight="bold", fontsize=25)
+        host.set_ylabel("Light Intensity (Lx)", fontsize=25)
+        host.set_ylim(light_min - 0.1, light_max + 1)
+        # plt.margins(x=1, y=2)
 
-    # Set Labels & Ranges
-    host.set_xlabel("Time", color=AXES_COLOR, fontweight="bold", fontsize=25)
-    host.set_ylabel("Light Intensity (Lx)", fontsize=25)
-    host.set_ylim(light_min - 0.1, light_max + 1)
-    # plt.margins(x=1, y=2)
+        ax1.set_ylabel("Temperature (°C)", fontsize=25)
+        ax1.set_ylim(temp_min - 0.5, temp_max + 1)
 
-    ax1.set_ylabel("Temperature (°C)", fontsize=25)
-    ax1.set_ylim(temp_min - 0.5, temp_max + 1)
+        ax2.set_ylabel("Motion (Boolean)", fontsize=25)
+        ax2.set_ylim(-0.1, 1)
+        host.margins(y=0.1)
 
-    ax2.set_ylabel("Motion (Boolean)", fontsize=25)
-    ax2.set_ylim(-0.1, 1)
-    host.margins(y=0.1)
+        # Optionally, adjust tick label sizes
+        host.tick_params(axis="both", labelsize=18)
+        ax1.tick_params(axis="both", labelsize=18)
+        ax2.tick_params(axis="both", labelsize=18)
 
-    # Optionally, adjust tick label sizes
-    host.tick_params(axis="both", labelsize=18)
-    ax1.tick_params(axis="both", labelsize=18)
-    ax2.tick_params(axis="both", labelsize=18)
-
-    legend = host.legend(loc="best", prop={'size': 18}, labelcolor=AXES_COLOR)
-    legend.get_frame().set_facecolor(FACE_COLOR)
-    host.tick_params(axis="x", colors=AXES_COLOR, labelsize=16, rotation=0)
+        legend = host.legend(loc="best", prop={'size': 18}, labelcolor=AXES_COLOR)
+        legend.get_frame().set_facecolor(FACE_COLOR)
+        host.tick_params(axis="x", colors=AXES_COLOR, labelsize=16, rotation=0)
     host.tick_params(axis="y", colors=TEMP_TEXT_COLOR)
     ax1.tick_params(axis="y", colors=TEMP_COLOR)
     ax2.tick_params(axis="y", colors=MOTION_COLOR)
