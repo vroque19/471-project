@@ -18,10 +18,6 @@ def compute_sleep_score(df, sleep_time, wake_time):
     
     """Compute sleep score based on various sleep metrics."""
     print("computing sleep score...\n\n")
-    # today = datetime.today()
-    # sleep_day = (today - timedelta(days=1)).strftime("%Y-%m-%d")
-    # today = today.strftime("%Y-%m-%d")
-    # sleep_time, wake_time = get_sleep_settings()
     """
     get the correct days and times
     """
@@ -41,22 +37,16 @@ def compute_sleep_score(df, sleep_time, wake_time):
                 'motion': 0
             })
         print(len(wake_periods))
-        
 
     # # Total Time in Bed (TIB) and Total Sleep Time (TST)
     TIB = abs((wake_time - sleep_time).total_seconds()) / 60  # in minutes
-    # print("TIB (hours): ", TIB/60)
     TST = TIB - ((num_wake_events)/2)
-    # print("TST (hours): ", TST/60)
 
     # # Sleep Latency 20%
     sleep_start_time = get_sleep_latency(wake_periods) # if perfect sleep latency
-    # print(sleep_start_time)
     sleep_time = df['timestamp'][0]
     sleep_latency = (sleep_start_time - sleep_time).total_seconds() / 60
-    # print("sleep latency (hours)", sleep_latency/60, "sleep time", sleep_time)
     latency_score = 20 * max(0, (TIB - sleep_latency) / TIB)
-
     
     # # Sleep Efficiency 30%
     sleep_efficiency = (TST / TIB) * 100
@@ -71,13 +61,7 @@ def compute_sleep_score(df, sleep_time, wake_time):
     # # Environmental Stability (light/temp fluctuations) 10%
     temp_variance = np.std(df['temperature'])
     light_variance = np.std(df['light'])
-    # print("temp variance: ", temp_variance, "light variance: ", light_variance)
     env_stability_score = max(0, 10 - (0.5 * temp_variance) - (0.5 * light_variance))
-    # print("latency score: ", latency_score)
-    # print("duration score: ", duration_score, "TST: ", TST/60)
-    # print("sleep efficiency: ", efficiency_score)
-    # print("interruptions score", interruptions_score)
-    # print("env stability score: ", env_stability_score)
     
     # # Final Sleep Score
     sleep_score = (latency_score + efficiency_score + interruptions_score +
@@ -85,8 +69,6 @@ def compute_sleep_score(df, sleep_time, wake_time):
     return sleep_score
 
 def get_sleep_latency(wake_events):
-    # if len(wake_events) <= 0:
-    #     wake_events.append()
     l, r = 1, 2 # dont count first one
     while r < len(wake_events):
         time_diff = abs((wake_events[l]['timestamp'] - wake_events[r]['timestamp']).total_seconds())
@@ -108,22 +90,7 @@ def detect_sleep_periods(df, sleep_time, wake_time, wake_events):
     consecutive_motion = 0
     prev_time = df['timestamp'][0] # keep track of last time wake detected
     ten_sec_ago = False
-    is_awake = False
-
-
-    # for i, row in df.iterrows():
-    #     current_time = row['timestamp']
-
-    #     if row['light'] > light_thresh:
-    #         is_awake = True
-    #         wake_events.append({
-    #             'timestamp': current_time,
-    #             'light': row['light'],
-    #             'motion': row['motion']
-    #         })
-    #     else:
-    #         is_awake = False
-            
+    is_awake = False           
     
     df_resampled = df.resample('30S', on='timestamp').mean().reset_index()
     print(df_resampled)
@@ -157,14 +124,9 @@ def get_sleep_times(sleep_day, today, bed_time, wake_time):
 def main():
     df, sleep_day, today, bed_time, wake_time = get_score_data()
     sleep_time, wake_time = get_sleep_times(sleep_day, today, bed_time, wake_time)
-    # print("sleep_time: ", sleep_time, "wake_time: ", wake_time)
-    # print("get correct times: ", sleep_day, today, bed_time, wake_time)
-    # print(df)
     date = datetime.now().strftime("%Y-%m-%d")
     day = datetime.now().strftime("%a")
-    # print(detect_sleep_periods(df))
     score = compute_sleep_score(df, sleep_time, wake_time)
-    # print(f"Sleep Score: {score}")
     output = (date, day, score)
     return output
 

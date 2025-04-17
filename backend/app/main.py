@@ -70,6 +70,7 @@ async def turn_display_off():
 async def turn_display_on():
     """Turn the display on by enabling backlight"""
     try:
+        print("turn display on")
         backlight_path = get_backlight_path()
         with open(backlight_path, 'w') as f:
             f.write('0')  # 0 turns on backlight

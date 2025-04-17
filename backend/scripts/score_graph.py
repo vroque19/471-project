@@ -37,7 +37,7 @@ def main():
     fig.set_facecolor(FACE_COLOR)
     ax.set_facecolor(FACE_COLOR)
     ax.yaxis.tick_right()  # Move ticks to the right side
-    # ax.yaxis.set_label_position("right")  # Move the ylabel to the right
+
     # Plot the line, only connecting points where data exists
     ax = sns.lineplot(
         x="Day", 

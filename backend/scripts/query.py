@@ -131,8 +131,6 @@ SELECT s.day, s.score
     return data
 
 def main():
-    # print(get_sensor_data())
-    # get_sleep_settings()
     get_sensor_data()
 
 
