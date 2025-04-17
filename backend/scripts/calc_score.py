@@ -25,7 +25,6 @@ def compute_sleep_score(df, sleep_time, wake_time):
     wake_periods = []
     num_wake_events = detect_sleep_periods(df, sleep_time=sleep_time, wake_time=wake_time, wake_events=wake_periods)
     if num_wake_events == 0:
-        print("no wake event")
         wake_periods.append({
                 'timestamp': df['timestamp'][0],
                 'light': 0,
@@ -36,7 +35,7 @@ def compute_sleep_score(df, sleep_time, wake_time):
                 'light': 0,
                 'motion': 0
             })
-        print(len(wake_periods))
+        # print(len(wake_periods))
 
     # # Total Time in Bed (TIB) and Total Sleep Time (TST)
     TIB = abs((wake_time - sleep_time).total_seconds()) / 60  # in minutes
@@ -73,11 +72,11 @@ def get_sleep_latency(wake_events):
     while r < len(wake_events):
         time_diff = abs((wake_events[l]['timestamp'] - wake_events[r]['timestamp']).total_seconds())
         if time_diff > 20*60: # about 40 minutes
-            print(time_diff)
+            # print(time_diff)
             break
         l += 1
         r += 1
-    print("last wake before sleep:", l, wake_events[l])
+    # print("last wake before sleep:", l, wake_events[l])
     return wake_events[l]['timestamp']
 
 
@@ -93,7 +92,7 @@ def detect_sleep_periods(df, sleep_time, wake_time, wake_events):
     is_awake = False           
     
     df_resampled = df.resample('30S', on='timestamp').mean().reset_index()
-    print(df_resampled)
+    # print(df_resampled)
     for i, row in df_resampled.iterrows():
         current_time = row['timestamp']
         if prev_time is None:
@@ -111,7 +110,7 @@ def detect_sleep_periods(df, sleep_time, wake_time, wake_events):
             is_awake = False
         
         prev_time = current_time
-    print(("wake events: ", len(wake_events)))
+    # print(("wake events: ", len(wake_events)))
     
     return len(wake_events)
 

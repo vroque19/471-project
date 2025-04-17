@@ -29,7 +29,7 @@ def get_sensor_data():
     today = datetime.today()
     sleep_day = (today - timedelta(days=1)).strftime("%Y-%m-%d")
     today = today.strftime("%Y-%m-%d")
-    print(sleep_day)    
+    # print(sleep_day)    
     wake_time, bed_time = get_sleep_settings()
     if datetime.strptime(bed_time, "%H:%M") < datetime.strptime(wake_time, "%H:%M"):
         sleep_day = today
@@ -69,7 +69,7 @@ def get_score_data():
     today = datetime.today()
     sleep_day = (today - timedelta(days=1)).strftime("%Y-%m-%d")
     today = today.strftime("%Y-%m-%d")
-    print(sleep_day)    
+    # print(sleep_day)    
     wake_time, bed_time = get_sleep_settings()
     if datetime.strptime(bed_time, "%H:%M") < datetime.strptime(wake_time, "%H:%M"):
         sleep_day = today
@@ -118,7 +118,7 @@ SELECT s.day, s.score
     ORDER BY s.date;
 """
     conn = get_db_connection()
-    print("start of week and today: ", start_of_week, today)
+    # print("start of week and today: ", start_of_week, today)
     db_scores = pd.read_sql_query(query.format(start_of_week, today), con=conn)
     conn.close()
     
@@ -127,7 +127,7 @@ SELECT s.day, s.score
         day_index = days_of_week.index(row['day'])
         print(day_index)
         data["Sleep Score"][day_index] = row['score']  # Ensure score is a float for consistency
-        print(data)
+        # print(data)
     return data
 
 def main():
