@@ -1,16 +1,17 @@
 # backend/app/main.py
+import os
+import sys
+import time
+import asyncio
+import subprocess
 import pytz
 from . import models
 from datetime import datetime, timedelta
 from .database import get_db_connection, init_db
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-import os
-import sys
-import time
-import asyncio
 
-light_path = os.path.abspath("/home/ubuntu/repos/471-project/backend/scripts/auth.py")
+light_path = os.path.abspath("/home/ubuntu/repos/471-project/backend/scripts/main_light.py")
 log_data_path = os.path.abspath(
     "/home/ubuntu/repos/471-project/backend/scripts/log_data.py"
 )
@@ -31,10 +32,13 @@ sys.path.insert(0, score_path)
 from scripts import auth, log_data, score_graph, graph, query, calc_score
 graphs_uploaded = False
 
+BACKLIGHT_PATH = "/sys/class/backlight/10-0045/bl_power"       # Some alternative displays
+
 app = FastAPI()
 
 init_db()
 tz_LA = pytz.timezone("America/Los_Angeles")
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -43,7 +47,39 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# stop_event = threading.Event()
+
+def get_backlight_path():
+    """Find the correct backlight control path"""
+    return BACKLIGHT_PATH
+    raise FileNotFoundError("Could not find display backlight control file")
+
+async def turn_display_off():
+    """Turn the display off by disabling backlight"""
+    try:
+        backlight_path = get_backlight_path()
+        with open(backlight_path, 'w') as f:
+            f.write('1')  # 1 turns off backlight
+    except Exception as e:
+        print(f"Error turning display off: {str(e)}")
+        # Fallback to vcgencmd if available
+        try:
+            subprocess.run(["echo", "1", "|", "sudo", "tee", BACKLIGHT_PATH], check=True)
+        except:
+            pass
+
+async def turn_display_on():
+    """Turn the display on by enabling backlight"""
+    try:
+        backlight_path = get_backlight_path()
+        with open(backlight_path, 'w') as f:
+            f.write('0')  # 0 turns on backlight
+    except Exception as e:
+        print(f"Error turning display on: {str(e)}")
+        # Fallback to vcgencmd if available
+        try:
+            subprocess.run(["echo", "0", "|", "sudo", "tee", BACKLIGHT_PATH], check=True)
+        except:
+            pass
 
 @app.get("/")
 def read_root():
@@ -75,7 +111,7 @@ async def update_sensor_data_background():
         return {"success": False, "error": str(e)}
 
 def get_sleep_wake_times():
-    today = (datetime.today())
+    today = datetime.today()
     tomorrow = (today + timedelta(days=1)).strftime("%Y-%m-%d")
     today = today.strftime("%Y-%m-%d")
     conn = get_db_connection()
@@ -152,21 +188,28 @@ async def log_data_in_time_window():
     while True:
         try:
             curr_time = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S") 
+            # within sleep window
+            if sleep_time <= curr_time <= wake_time or (curr_time.time() < wake_time.time()):
 
-            if sleep_time <= curr_time <= wake_time:
-                # print("In sleep window - logging data")
                 await update_sensor_data_background()
+                await turn_display_off()
                 await asyncio.sleep(1)
+            # outside sleep window
             else:
                 sleep_time, wake_time = get_sleep_wake_times()
+                # debugging
                 print(f"Outside sleep window, waiting 1 minute\nCurrent: {curr_time}\nSleep: {sleep_time}\nWake: {wake_time}")
+                await turn_display_on()
                 await asyncio.sleep(60)
+    
         except Exception as e:
             print(f"Error in background task {str(e)}")
             await asyncio.sleep(60)
 
+
 background_task = None
 background_task2 = None
+background_task3 = None
 
 def start_background_tasks():
     global background_task, background_task2
@@ -174,6 +217,8 @@ def start_background_tasks():
         background_task = asyncio.create_task(log_data_in_time_window())
     if background_task2 is None:
         background_task2 = asyncio.create_task(run_at_wake_time())
+
+
 
 @app.on_event("startup")
 async def startup_event():
