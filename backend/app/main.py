@@ -6,12 +6,15 @@ import asyncio
 import subprocess
 import pytz
 from . import models
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from .database import get_db_connection, init_db
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+ENV_PATH = "/home/ubuntu/repos/471-project/backend/scripts/.env"
+BACKLIGHT_PATH = "/sys/class/backlight/10-0045/bl_power"
 
-light_path = os.path.abspath("/home/ubuntu/repos/471-project/backend/scripts/main_light.py")
+light_path = os.path.abspath("/home/ubuntu/repos/471-project/backend/scripts/light.py")
 log_data_path = os.path.abspath(
     "/home/ubuntu/repos/471-project/backend/scripts/log_data.py"
 )
@@ -29,10 +32,12 @@ sys.path.insert(0, log_data_path)
 sys.path.insert(0, graphs_path)
 sys.path.insert(0, score_graph_path)
 sys.path.insert(0, score_path)
-from scripts import auth, log_data, score_graph, graph, query, calc_score
-graphs_uploaded = False
+from scripts import auth, log_data, score_graph, graph, query, calc_score, light
 
-BACKLIGHT_PATH = "/sys/class/backlight/10-0045/bl_power"       # Some alternative displays
+load_dotenv(ENV_PATH)
+LIFX_TOKEN = os.getenv("TOKEN")
+LIFX_ID = os.getenv("ID")
+graphs_uploaded = False
 
 app = FastAPI()
 
@@ -47,6 +52,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def read_root():
+    # auth.schedule()
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = c.fetchall()
+    conn.close()
+    return {"tables": [table[0] for table in tables]}
 
 def get_backlight_path():
     """Find the correct backlight control path"""
@@ -81,16 +96,6 @@ async def turn_display_on():
             subprocess.run(["echo", "0", "|", "sudo", "tee", BACKLIGHT_PATH], check=True)
         except:
             pass
-
-@app.get("/")
-def read_root():
-    # auth.schedule()
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    tables = c.fetchall()
-    conn.close()
-    return {"tables": [table[0] for table in tables]}
 
     
 async def update_sensor_data_background():
@@ -151,8 +156,6 @@ async def update_sleep_score_background():
         print(f"Error updating sleep score: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
-
 async def run_at_wake_time():
     # check and upload graphs at wake time
     global graphs_uploaded
@@ -207,17 +210,54 @@ async def log_data_in_time_window():
             print(f"Error in background task {str(e)}")
             await asyncio.sleep(60)
 
+async def run_light_schedule():
+    print("Running light schedule")
+    while True:
+        light1 = light.Light()
+        sleep_time, wake_time = get_sleep_wake_times()
+        wake_time = wake_time.replace(
+        year=datetime.now().year,
+        month=datetime.now().month,
+        day=datetime.now().day)
+        schedule = [
+            (wake_time, light.wake_1),
+            (wake_time + timedelta(minutes=15), light.wake_2),
+            (wake_time + timedelta(minutes=30), light.wake_3),
+            (wake_time + timedelta(minutes=45), light.wake_4),
+            (wake_time + timedelta(minutes=60), light.wake_5),
+            (sleep_time - timedelta(minutes=90), light.bed_1),
+            (sleep_time - timedelta(minutes=75), light.bed_2),
+            (sleep_time - timedelta(minutes=60), light.bed_3),
+            (sleep_time - timedelta(minutes=45), light.bed_4),
+            (sleep_time - timedelta(minutes=30), light.bed_5),
+            (sleep_time - timedelta(minutes=10), light.bed_6),
+            (sleep_time, light.bed_6),
+        ]
+        now = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S") 
+        for i in range(len(schedule)):
+            event = schedule[i]
+            trigger_time, light_func = event[0], event[1]
+            next_time = schedule[(i+1)%(len(schedule))][0]
+            print(f"Now: {now}, Trigger: {trigger_time}, Next: {next_time}, Now >= Trigger? {next_time > now >= trigger_time}")
+            if trigger_time <= now < next_time:
+                print("Light function: ", light_func)
+                await light_func(light1)
+                print("Waiting until", next_time)
+                await asyncio.sleep(1)  # Prevent rapid re-triggering
+        await asyncio.sleep(max((next_time - now).total_seconds(), 1))
 
 background_task = None
 background_task2 = None
 background_task3 = None
 
 def start_background_tasks():
-    global background_task, background_task2
+    global background_task, background_task2, background_task3
     if background_task is None:
         background_task = asyncio.create_task(log_data_in_time_window())
     if background_task2 is None:
         background_task2 = asyncio.create_task(run_at_wake_time())
+    if background_task3 is None:
+        background_task3 = asyncio.create_task(run_light_schedule())
 
 
 
@@ -227,8 +267,9 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    global background_task, background_task2
-    for task in [background_task, background_task2]:
+    global background_task, background_task2, background_task3
+    tasks = [background_task, background_task2, background_task3]
+    for task in tasks:
         if task:
             task.cancel()
         try:
