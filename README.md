@@ -8,6 +8,24 @@ Sleep data is collected during your personal sleep window via motion, light, and
 A LIFX wifi light is tuned to align with your circadian rhythm.
 
 # Automation scripts to start the application on-boot:
+
+## Systemd Service Files
+
+### Frontend Services:
+```
+/etc/systemd/system/npmrun.service 
+```
+
+- defines how to manage the Node.js application as a background service on the RaspberryPi 5
+## Backend Services:
+```
+/etc/systemd/system/backend.service
+```
+
+- defines how to manage the FastAPI application as a background service on the RaspberryPi 5
+
+>
+> 
 open-local.sh: 
 ``` bash
 #!/bin/bash
@@ -30,22 +48,6 @@ Type=Application
 X-GNOME-Autostart-enabled=true
 ```
 
-## Systemd Service Files
-
-### Frontend Services:
-```
-/etc/systemd/system/npmrun.service 
-```
-
-- defines how to manage the Node.js application as a background service on the RaspberryPi 5
-## Backend Services:
-```
-/etc/systemd/system/backend.service
-```
-
-- defines how to manage the FastAPI application as a background service on the RaspberryPi 5
-
-> don't forget to install node modules, enviroment variables, virtual enviroment
 
 # Resources
 [FastAPI](https://fastapi.tiangolo.com/) <br>
@@ -56,3 +58,6 @@ X-GNOME-Autostart-enabled=true
 [Adafruit MS8607](https://learn.adafruit.com/adafruit-te-ms8607-pht-sensor/python-circuitpython) <br>
 [PIR motion sensor](https://projects.raspberrypi.org/en/projects/physical-computing/11) <br>
 [Adafruit TSL2591](https://www.adafruit.com/product/1980) <br>
+[System Daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) <br>
+
+> don't forget to install node modules, enviroment variables, virtual enviroment
