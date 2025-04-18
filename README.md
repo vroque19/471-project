@@ -1,34 +1,13 @@
 # CatNap
 A Smart Sleep System designed to align with your circadian rhythm. 
 
-# TODO
-1. configure automated sleep data push/ sleep score pages
-2. configure automated writes to the LIFX light
+A Raspberry Pi screen displays a home page, daily sleep data, and weekly sleep scores.
 
+Configuring you sleep and wake times on the touch screen will automatically be sent to the database and be considered in sleep data collection
+Sleep data is collected during your personal sleep window via motion, light, and temperature sensors.
+A LIFX wifi light is tuned to align with your circadian rhythm.
 
-## Systemd Service Files
-
-### Frontend Services:
-```
-/etc/systemd/system/npmrun.service 
-```
-defines how to manage the Node.js application as a background service on the RaspberryPi 5
-```
-[Unit]
-Description=spin server on boot
-After=network.target
-
-[Service]
-User=rpi5
-WorkingDirectory=/home/rpi5/Desktop/471-project
-ExecStart=/usr/bin/node /usr/lib/node_modules/npm/bin/npm-cli.js run dev
-Restart=always
-StartLimitInterval=0
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
+# Automation scripts to start the application on-boot:
 open-local.sh: 
 ``` bash
 #!/bin/bash
@@ -50,27 +29,30 @@ Exec=/home/rpi5/open-local.sh
 Type=Application
 X-GNOME-Autostart-enabled=true
 ```
+
+## Systemd Service Files
+
+### Frontend Services:
+```
+/etc/systemd/system/npmrun.service 
+```
+
+- defines how to manage the Node.js application as a background service on the RaspberryPi 5
 ## Backend Services:
 ```
 /etc/systemd/system/backend.service
 ```
-```
-[Unit]
-Description=Backend FastAPI Service
-After=npmrun.service
-Requires=npmrun.service
 
-[Service]
-User=rpi5
-WorkingDirectory=/home/rpi5/Desktop/471-project/backend
-ExecStart=/bin/bash -c 'source venv/bin/activate && uvicorn app.main:app --reload'
-Restart=always
-RestartSec=5
+- defines how to manage the FastAPI application as a background service on the RaspberryPi 5
 
-[Install]
-WantedBy=multi-user.target
+> don't forget to install node modules, enviroment variables, virtual enviroment
 
-```
 # Resources
-[Layer Cake](https://layercake.graphics/) <br>
-[adafruit MS8607](https://learn.adafruit.com/adafruit-te-ms8607-pht-sensor/python-circuitpython)
+[FastAPI](https://fastapi.tiangolo.com/) <br>
+[Svelte](https://svelte.dev/docs) <br>
+[LIFX](https://api.developer.lifx.com/reference/introduction) <br>
+[Raspberry Pi Pinout](https://pinout.xyz/pinout/) <br>
+[FastAPI](https://fastapi.tiangolo.com/) <br>
+[Adafruit MS8607](https://learn.adafruit.com/adafruit-te-ms8607-pht-sensor/python-circuitpython) <br>
+[PIR motion sensor](https://projects.raspberrypi.org/en/projects/physical-computing/11) <br>
+[Adafruit TSL2591](https://www.adafruit.com/product/1980) <br>
