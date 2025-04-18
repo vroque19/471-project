@@ -1,10 +1,9 @@
 # backend/app/main.py
 import os
 import sys
-import time
+import pytz
 import asyncio
 import subprocess
-import pytz
 from . import models
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -69,33 +68,42 @@ def get_backlight_path():
     raise FileNotFoundError("Could not find display backlight control file")
 
 async def turn_display_off():
-    """Turn the display off by disabling backlight"""
+    """Turn the display off"""
+    print("turn display off")
     try:
-        backlight_path = get_backlight_path()
-        with open(backlight_path, 'w') as f:
-            f.write('1')  # 1 turns off backlight
+        subprocess.run(
+    ['sudo', 'tee', BACKLIGHT_PATH],
+    input='1\n',
+    text=True,
+    check=True
+    )
     except Exception as e:
         print(f"Error turning display off: {str(e)}")
-        # Fallback to vcgencmd if available
         try:
-            subprocess.run(["echo", "1", "|", "sudo", "tee", BACKLIGHT_PATH], check=True)
-        except:
-            pass
+            # backlight_path = get_backlight_path()  # make sure this returns a valid path string
+            with open(BACKLIGHT_PATH, 'w') as f:
+                f.write('1')
+        except subprocess.CalledProcessError as e:
+            print(f"Fallback also failed: {str(e)}")
 
 async def turn_display_on():
     """Turn the display on by enabling backlight"""
+    print("turn display on")
     try:
-        print("turn display on")
-        backlight_path = get_backlight_path()
-        with open(backlight_path, 'w') as f:
-            f.write('0')  # 0 turns on backlight
+        subprocess.run(
+    ['sudo', 'tee', BACKLIGHT_PATH],
+    input='0\n',
+    text=True,
+    check=True
+    )
     except Exception as e:
         print(f"Error turning display on: {str(e)}")
-        # Fallback to vcgencmd if available
         try:
-            subprocess.run(["echo", "0", "|", "sudo", "tee", BACKLIGHT_PATH], check=True)
-        except:
-            pass
+            # backlight_path = get_backlight_path()  # make sure this returns a valid path string
+            with open(BACKLIGHT_PATH, 'w') as f:
+                f.write('0')
+        except subprocess.CalledProcessError as e:
+            print(f"Fallback also failed: {str(e)}")
 
     
 async def update_sensor_data_background():
@@ -161,14 +169,14 @@ async def run_at_wake_time():
     global graphs_uploaded
     while True:
         try:
+            await turn_display_on()
             sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
-            # wake_time = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S")
-            # time.sleep(2)
+
             curr_time = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S")
             today = (curr_time.date())
             start_time = wake_time.replace(year=today.year, month=today.month, day=today.day)
-            two_minutes_later = start_time + timedelta(minutes=2)
             # allow 2 minutes for graphs to upload
+            two_minutes_later = start_time + timedelta(minutes=2)
             if curr_time >= start_time and not graphs_uploaded:
                 print("time to get graphs... calculating")
                 await update_sleep_score_background()
@@ -177,10 +185,10 @@ async def run_at_wake_time():
                 await asyncio.sleep(1)
                 score_graph.main()
                 graphs_uploaded = True
-                # await asyncio.sleep(3600)
+                await asyncio.sleep(600)
             if curr_time < start_time:
                 graphs_uploaded = False
-                print("not wake time... waiting...")
+                print("sleep time... waiting...")
                 sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
             await asyncio.sleep(60)
         except Exception as e:
@@ -203,7 +211,7 @@ async def log_data_in_time_window():
                 sleep_time, wake_time = get_sleep_wake_times()
                 # debugging
                 print(f"Outside sleep window, waiting 1 minute\nCurrent: {curr_time}\nSleep: {sleep_time}\nWake: {wake_time}")
-                await turn_display_on()
+                # await turn_display_on()
                 await asyncio.sleep(60)
     
         except Exception as e:
@@ -226,25 +234,50 @@ async def run_light_schedule():
             (wake_time + timedelta(minutes=45), light.wake_4),
             (wake_time + timedelta(minutes=60), light.wake_5),
             (sleep_time - timedelta(minutes=90), light.bed_1),
-            (sleep_time - timedelta(minutes=75), light.bed_2),
-            (sleep_time - timedelta(minutes=60), light.bed_3),
-            (sleep_time - timedelta(minutes=45), light.bed_4),
-            (sleep_time - timedelta(minutes=30), light.bed_5),
-            (sleep_time - timedelta(minutes=10), light.bed_6),
+            (sleep_time - timedelta(minutes=60), light.bed_2),
+            (sleep_time - timedelta(minutes=45), light.bed_3),
+            (sleep_time - timedelta(minutes=30), light.bed_4),
+            (sleep_time - timedelta(minutes=15), light.bed_5),
             (sleep_time, light.bed_6),
         ]
         now = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S") 
         for i in range(len(schedule)):
+            if i == len(schedule) - 1:
+                # sleep_time, wake_time = get_sleep_wake_times()
+                wake_time = wake_time + timedelta(days=1)
+                print("new wake: ", wake_time)
+                schedule = [
+            (wake_time, light.wake_1),
+            (wake_time + timedelta(minutes=15), light.wake_2),
+            (wake_time + timedelta(minutes=30), light.wake_3),
+            (wake_time + timedelta(minutes=45), light.wake_4),
+            (wake_time + timedelta(minutes=60), light.wake_5),
+            (sleep_time - timedelta(minutes=90), light.bed_1),
+            (sleep_time - timedelta(minutes=60), light.bed_2),
+            (sleep_time - timedelta(minutes=45), light.bed_3),
+            (sleep_time - timedelta(minutes=30), light.bed_4),
+            (sleep_time - timedelta(minutes=15), light.bed_5),
+            (sleep_time, light.bed_6),
+        ]
             event = schedule[i]
             trigger_time, light_func = event[0], event[1]
             next_time = schedule[(i+1)%(len(schedule))][0]
             print(f"Now: {now}, Trigger: {trigger_time}, Next: {next_time}, Now >= Trigger? {next_time > now >= trigger_time}")
             if trigger_time <= now < next_time:
+                # print(f"Now: {now}, Trigger: {trigger_time}, Next: {next_time}, Trigger? {next_time > now >= trigger_time}")
                 print("Light function: ", light_func)
                 await light_func(light1)
                 print("Waiting until", next_time)
                 await asyncio.sleep(1)  # Prevent rapid re-triggering
-        await asyncio.sleep(max((next_time - now).total_seconds(), 1))
+            # elif sleep_time <= now <= get_sleep_wake_times()[1]:
+            #     print(f"Now: {now}, Sleep time: {sleep_time}, Next: {next_time}, Trigger? {sleep_time <= now < get_sleep_wake_times()[1]}")
+            #     print("Light function: ", light_func)
+            #     await light_func(light1)
+            #     print("Waiting until", get_sleep_wake_times()[1])
+            #     await asyncio.sleep(1)  # Prevent rapid re-triggering
+
+        # await asyncio.sleep(max((next_time - now).total_seconds(), 1))
+        await asyncio.sleep(60)
 
 background_task = None
 background_task2 = None
