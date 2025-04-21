@@ -4,12 +4,13 @@ import requests
 import json
 import time
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 
 load_dotenv()
 LIFX_TOKEN = os.getenv("TOKEN")
 LIFX_ID = os.getenv("ID")
+TEST_ID = os.getenv("TEST_ID")
 # WAKE UP
 MORNING1 = "orange"
 MORNING2 = "#be934e"
@@ -24,7 +25,7 @@ EVENING3 = "#e44318"
 EVENING4 = "E6411A"
 EVENING5 = "#986c40"
 
-
+tz_LA = pytz.timezone("America/Los_Angeles")
 
 class Light:
     def __init__(self):
@@ -33,6 +34,7 @@ class Light:
         self.wake_funcs = [getattr(self, f"wake_{i}") for i in range(1, 6)] # scope/ variable introspection
         self.sleep_funcs = [getattr(self, f"sleep_{i}") for i in range(1, 7)]
         self._light_id = os.getenv("ID")
+        # self._light_id = os.getenv("TEST_ID")
         self._token = os.getenv("TOKEN")
         self.get_headers = {
             "Authorization": f"Bearer {self._token}",
@@ -127,13 +129,40 @@ class Light:
             f"Could not change temperature of light with id: {self._light_id}"
         )
 
+    def get_step(self, wake_time, sleep_time):
+        wake_end = wake_time + timedelta(minutes=75)  # Wake cycle active period
+        sleep_start = sleep_time - timedelta(minutes=75)  # Sleep cycle start
+        current_time = datetime.now() - timedelta(hours=4)
+        next_wake_time = wake_time + timedelta(days=1)
+        print(wake_time, wake_end, current_time, sleep_start)
+        
+        # Check if current time is in the wake cycle (steps 0-4)
+        if wake_time <= current_time < wake_end:
+            minutes_since_wake = (current_time - wake_time).total_seconds() / 60
+            step = int(minutes_since_wake // 15)  # 15-minute increments
+            step = min(step, 4)  # Cap at step 4
+            print(wake_time, current_time, wake_end, minutes_since_wake)
+            return ("wake", step)
+        # Check if current time is in the wake step 4 persistence period (wake_end to sleep_start)
+        if wake_end <= current_time < sleep_start:
+            return ("wake", 4)  # Persist wake step 4
+         # Check if current time is in the sleep cycle (steps 0-5)
+        if sleep_start <= current_time <= sleep_time:
+            minutes_until_sleep = (sleep_time - current_time).total_seconds() / 60
+            step = int((75 - minutes_until_sleep) // 15)  # 75 minutes total, 15-minute increments
+            step = min(step, 5)  # Cap at step 5
+            return ("sleep", step)
+        # Check if current time is in the sleep step 5 persistence period (sleep_datetime to next_wake_datetime)
+        if sleep_time < current_time < next_wake_time:
+            return ("sleep", 5)  # Persist sleep step 5
+  
+
     def wake_1(self):
         self.turn_on()
         self.change_brightness(0.15)
         self.change_color(MORNING1)
         self.change_color(MORNING1)
         self.change_brightness(0.15)
-
         self.change_temperature(1800)
         time.sleep(1)
         return
@@ -164,6 +193,7 @@ class Light:
         return
 
     def wake_5(self):
+        print("Brightest")
         self.change_brightness(1)
         time.sleep(2)
         self.change_temperature(5500)
@@ -182,7 +212,6 @@ class Light:
         return
 
     def sleep_2(self):
-
         self.change_color(EVENING3)
         self.change_brightness(0.7)
         self.change_color(EVENING4)
@@ -214,45 +243,97 @@ class Light:
     def sleep_6(self):
         self.turn_off()
         return
+
+    def cycle(self):
+        time.sleep(1)
+        self.wake_1()
+        self.wake_2()
+        self.wake_3()
+        self.wake_4()
+        self.wake_5()
+        time.sleep(1)
+        self.sleep_1()
+        self.sleep_2()
+        self.sleep_3()
+        self.sleep_4()
+        self.sleep_5()
+        self.sleep_6()
     
+    def run_cycle(self, funcs):
+        for step in funcs:
+            step()
+            time.sleep(1)
+    def wake_cycle(self):
+        self.run_cycle(self.wake_funcs)
+
+    def sleep_cycle(self):
+        self.run_cycle(self.sleep_funcs)
     # TODO (vroque19) : create the step functions for light
     # hint: use integer division with step size to index funcs
+    def step(self, step_number, cycle_type="wake"):
+        # Select the appropriate function list based on cycle_type
+        if cycle_type.lower() == "wake":
+            funcs = self.wake_funcs
+        elif cycle_type.lower() == "sleep":
+            funcs = self.sleep_funcs
+        else:
+            raise ValueError("cycle_type must be 'wake' or 'sleep'")
 
-    def wake_event(self, curr_time, wake_time):
-        time_diff = curr_time - wake_time
+        # Calculate the index and map it to the function list
+        num_funcs = len(funcs)
+        if num_funcs == 0:
+            raise ValueError(f"No functions available for {cycle_type} cycle")
 
-    def sleep_event(self, currtime, sleep_time):
-        ...
+        index = step_number % num_funcs  # Use modulo to wrap around if step_number exceeds num_funcs
+        print(funcs[index])
+        # Check if the index is valid
+        if index >= num_funcs:
+            raise ValueError(f"Step number {step_number} results in an invalid index for {cycle_type} cycle")
 
+        # Execute the function at the calculated index
+        print(f"Executing {cycle_type} step {step_number} (function index {index})")
+        funcs[index]()
 
-# def cycle(light):
-#     time.sleep(1)
-#     wake_1(light)
-#     wake_2(light)
-#     wake_3(light)
-#     wake_4(light)
-#     wake_5(light)
-#     bed_1(light)
-#     bed_2(light)
-#     bed_3(light)
-#     bed_4(light)
-#     bed_5(light)
-    # light.turn_off()
+def get_sleep_wake_times():
+    today = datetime.today()
+    tomorrow = (today + timedelta(days=1)).strftime("%Y-%m-%d")
+    today = today.strftime("%Y-%m-%d")
+    bed_time = "21:45"
+    wake_time = "8:30"
+    if datetime.strptime(bed_time, "%H:%M") < datetime.strptime(wake_time, "%H:%M"):
+        # past midnight
+        sleep_time = datetime.strptime(f"{tomorrow} {bed_time}:00", "%Y-%m-%d %H:%M:%S")
+        wake_time = datetime.strptime(f"{tomorrow} {wake_time}:00", "%Y-%m-%d %H:%M:%S")
+    else:
+        sleep_time = datetime.strptime(f"{today} {bed_time}:00", "%Y-%m-%d %H:%M:%S")
+        wake_time = datetime.strptime(f"{today} {wake_time}:00", "%Y-%m-%d %H:%M:%S")
+    return sleep_time, wake_time
+def test_get_step(light, wake_time, sleep_time, test_time):
+        print(f"Testing time: {test_time}")
+        cycle, step = light.get_step(wake_time, sleep_time)
+        print(f"Result: cycle={cycle}, step={step}\n")
 
+async def run_light_schedule(light, wake_time, sleep_time, timezone):
+    while True:
+        cycle, step = light.get_step(wake_time, sleep_time)
+        if cycle is not None:
+            print(f"Executing {cycle} cycle, step {step}")
+            light.step(step, cycle)
+        else:
+            print("No cycle active")
+        await asyncio.sleep(60)  # Check every minute
   
 def main():
     light = Light()
-    # light.turn_on()
-    # cycle(light)
-    
-    # light.change_temperature(1500)
-    # light.change_color(MORNING1)
-    # time.sleep(1)
-    # light.change_color(EVENING2)
-    # time.sleep(1)
+    sleep_time, wake_time = get_sleep_wake_times()
+    # test_get_step(light, wake_time, sleep_time, "08:00")
+    # light.sleep_1()
+    # asyncio.run(run_light_schedule(light, wake_time, sleep_time, tz_LA))
+    light.cycle()
+    # light.wake_1()
+    # light.wake_5()
+    # light.change_color("yellow")
 
-    # light.change_color(EVENING4)
-    # light.change_brightness(0.15)
 
 
     

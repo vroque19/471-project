@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from .database import get_db_connection, init_db
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+DEMO_MODE = True
 ENV_PATH = "/home/ubuntu/repos/471-project/backend/scripts/.env"
 BACKLIGHT_PATH = "/sys/class/backlight/10-0045/bl_power"
 
@@ -135,6 +136,7 @@ def get_sleep_wake_times():
     bed_time = row["bed_time"]
     wake_time = row["wake_time"]
     if datetime.strptime(bed_time, "%H:%M") < datetime.strptime(wake_time, "%H:%M"):
+        # past midnight
         sleep_time = datetime.strptime(f"{tomorrow} {bed_time}:00", "%Y-%m-%d %H:%M:%S")
         wake_time = datetime.strptime(f"{tomorrow} {wake_time}:00", "%Y-%m-%d %H:%M:%S")
     else:
@@ -169,7 +171,7 @@ async def run_at_wake_time():
     global graphs_uploaded
     while True:
         try:
-            await turn_display_on()
+            # await turn_display_on()
             sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
 
             curr_time = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S")
@@ -211,7 +213,7 @@ async def log_data_in_time_window():
                 sleep_time, wake_time = get_sleep_wake_times()
                 # debugging
                 print(f"Outside sleep window, waiting 1 minute\nCurrent: {curr_time}\nSleep: {sleep_time}\nWake: {wake_time}")
-                # await turn_display_on()
+                await turn_display_on()
                 await asyncio.sleep(60)
     
         except Exception as e:
@@ -220,68 +222,33 @@ async def log_data_in_time_window():
 
 async def run_light_schedule():
     print("Running light schedule")
+    wake_time, sleep_time = get_sleep_wake_times()
+    light = light.Light()
     while True:
-        light1 = light.Light()
-        sleep_time, wake_time = get_sleep_wake_times()
-        wake_time = wake_time.replace(
-        year=datetime.now().year,
-        month=datetime.now().month,
-        day=datetime.now().day)
-        schedule = [
-            (wake_time, light.wake_1),
-            (wake_time + timedelta(minutes=15), light.wake_2),
-            (wake_time + timedelta(minutes=30), light.wake_3),
-            (wake_time + timedelta(minutes=45), light.wake_4),
-            (wake_time + timedelta(minutes=60), light.wake_5),
-            (sleep_time - timedelta(minutes=90), light.bed_1),
-            (sleep_time - timedelta(minutes=60), light.bed_2),
-            (sleep_time - timedelta(minutes=45), light.bed_3),
-            (sleep_time - timedelta(minutes=30), light.bed_4),
-            (sleep_time - timedelta(minutes=15), light.bed_5),
-            (sleep_time, light.bed_6),
-        ]
-        now = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S") 
-        for i in range(len(schedule)):
-            if i == len(schedule) - 1:
-                # sleep_time, wake_time = get_sleep_wake_times()
-                wake_time = wake_time + timedelta(days=1)
-                print("new wake: ", wake_time)
-                schedule = [
-            (wake_time, light.wake_1),
-            (wake_time + timedelta(minutes=15), light.wake_2),
-            (wake_time + timedelta(minutes=30), light.wake_3),
-            (wake_time + timedelta(minutes=45), light.wake_4),
-            (wake_time + timedelta(minutes=60), light.wake_5),
-            (sleep_time - timedelta(minutes=90), light.bed_1),
-            (sleep_time - timedelta(minutes=60), light.bed_2),
-            (sleep_time - timedelta(minutes=45), light.bed_3),
-            (sleep_time - timedelta(minutes=30), light.bed_4),
-            (sleep_time - timedelta(minutes=15), light.bed_5),
-            (sleep_time, light.bed_6),
-        ]
-            event = schedule[i]
-            trigger_time, light_func = event[0], event[1]
-            next_time = schedule[(i+1)%(len(schedule))][0]
-            print(f"Now: {now}, Trigger: {trigger_time}, Next: {next_time}, Now >= Trigger? {next_time > now >= trigger_time}")
-            if trigger_time <= now < next_time:
-                # print(f"Now: {now}, Trigger: {trigger_time}, Next: {next_time}, Trigger? {next_time > now >= trigger_time}")
-                print("Light function: ", light_func)
-                await light_func(light1)
-                print("Waiting until", next_time)
-                await asyncio.sleep(1)  # Prevent rapid re-triggering
-            # elif sleep_time <= now <= get_sleep_wake_times()[1]:
-            #     print(f"Now: {now}, Sleep time: {sleep_time}, Next: {next_time}, Trigger? {sleep_time <= now < get_sleep_wake_times()[1]}")
-            #     print("Light function: ", light_func)
-            #     await light_func(light1)
-            #     print("Waiting until", get_sleep_wake_times()[1])
-            #     await asyncio.sleep(1)  # Prevent rapid re-triggering
+        cycle, step = light.get_step(wake_time, sleep_time)
+        if cycle is not None:
+            print(f"Executing {cycle} cycle, step {step}")
+            light.step(step, cycle)
+        else:
+            print("No cycle active")
+        await asyncio.sleep(60)  # Check every minute
+        
+    
 
-        # await asyncio.sleep(max((next_time - now).total_seconds(), 1))
-        await asyncio.sleep(60)
+
+async def demo():
+    print("Running light schedule")
+    wake_time, sleep_time = get_sleep_wake_times()
+    light1 = light.Light()
+    while True:
+        light1.cycle()
+        await asyncio.sleep(60)  # Check every minute
+
 
 background_task = None
 background_task2 = None
 background_task3 = None
+background_task4 = None
 
 def start_background_tasks():
     global background_task, background_task2, background_task3
@@ -290,8 +257,12 @@ def start_background_tasks():
     if background_task2 is None:
         background_task2 = asyncio.create_task(run_at_wake_time())
     if background_task3 is None:
-        background_task3 = asyncio.create_task(run_light_schedule())
+        background_task3 = asyncio.create_task(demo())
 
+def start_demo_tasks():
+    global background_task4
+    if background_task4 is None:
+        background_task4 = asyncio.create_task()
 
 
 @app.on_event("startup")
