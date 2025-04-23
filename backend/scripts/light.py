@@ -33,8 +33,8 @@ class Light:
         # self.sleep_funcs = [self.sleep_1, self.sleep_2, self.sleep_3, self.sleep_4, self.sleep_5]
         self.wake_funcs = [getattr(self, f"wake_{i}") for i in range(1, 6)] # scope/ variable introspection
         self.sleep_funcs = [getattr(self, f"sleep_{i}") for i in range(1, 7)]
-        self._light_id = os.getenv("ID")
-        # self._light_id = os.getenv("TEST_ID")
+        # self._light_id = os.getenv("ID")
+        self._light_id = os.getenv("TEST_ID")
         self._token = os.getenv("TOKEN")
         self.get_headers = {
             "Authorization": f"Bearer {self._token}",
@@ -129,24 +129,28 @@ class Light:
             f"Could not change temperature of light with id: {self._light_id}"
         )
 
-    def get_step(self, wake_time, sleep_time):
+    def get_step(self, wake_time, sleep_time, current_time):
+        if wake_time > current_time and sleep_time > current_time:
+            wake_time = wake_time - timedelta(days=1)
         wake_end = wake_time + timedelta(minutes=75)  # Wake cycle active period
         sleep_start = sleep_time - timedelta(minutes=75)  # Sleep cycle start
-        current_time = datetime.now()
+        # current_time = datetime.now(tz_LA)
         next_wake_time = wake_time + timedelta(days=1)
-        print(wake_time, wake_end, current_time, sleep_start)
+        print("wake", wake_time, "wake end", wake_end, "curr", current_time)
+
         # Check if current time is in the wake cycle (steps 0-4)
         if wake_time <= current_time < wake_end:
+            # print("wake", wake_time, "wake end", wake_end, "curr", current_time)
             minutes_since_wake = (current_time - wake_time).total_seconds() / 60
             step = int(minutes_since_wake // 15)  # 15-minute increments
-            step = min(step, 5)  # Cap at step 4
-            print(wake_time, current_time, wake_end, minutes_since_wake)
+            step = min(step, 4)  # Cap at step 4
+            # print(wake_time, current_time, wake_end, minutes_since_wake)
             return ("wake", step)
         # Check if current time is in the wake step 4 persistence period (wake_end to sleep_start)
         if wake_end <= current_time < sleep_start:
-            return ("wake", 5)  # Persist wake step 4
+            return ("wake", 4)  # Persist wake step 4
          # Check if current time is in the sleep cycle (steps 0-5)
-        if sleep_start <= current_time <= sleep_time:
+        if sleep_start <= current_time <= next_wake_time:
             minutes_until_sleep = (sleep_time - current_time).total_seconds() / 60
             step = int((75 - minutes_until_sleep) // 15)  # 75 minutes total, 15-minute increments
             step = min(step, 5)  # Cap at step 5

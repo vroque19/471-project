@@ -165,6 +165,9 @@ async def update_sleep_score_background():
     except Exception as e:
         print(f"Error updating sleep score: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+def get_curr_time():
+    return datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S")
 
 async def run_at_wake_time():
     # check and upload graphs at wake time
@@ -174,7 +177,7 @@ async def run_at_wake_time():
             # await turn_display_on()
             sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
 
-            curr_time = datetime.strptime(str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "%Y-%m-%d %H:%M:%S")
+            curr_time = get_curr_time()
             today = (curr_time.date())
             start_time = wake_time.replace(year=today.year, month=today.month, day=today.day)
             # allow 2 minutes for graphs to upload
@@ -221,34 +224,40 @@ async def log_data_in_time_window():
             await asyncio.sleep(60)
 
 async def run_light_schedule():
-    print("Running light schedule")
-    wake_time, sleep_time = get_sleep_wake_times()
-    light = light.Light()
+    curr_time = get_curr_time()
+    print(f"Running light schedule at {curr_time}")
+    sleep_time, wake_time = get_sleep_wake_times()
+
+    light1 = light.Light()
+    print(f"got light{light1}")
     while True:
-        cycle, step = light.get_step(wake_time, sleep_time)
+        # light1.turn_on()
+        cycle, step = light1.get_step(wake_time, sleep_time, curr_time)
+        print(f"got {step} from {cycle}")
         if cycle is not None:
             print(f"Executing {cycle} cycle, step {step}")
-            light.step(step, cycle)
+            await light1.step(step, cycle)
         else:
             print("No cycle active")
-        await asyncio.sleep(60)  # Check every minute
+        
+        await asyncio.sleep(10)  # Check every minute
         
     
 
 
 async def demo():
-    print("Running light schedule")
+    print("Running light schedule...")
     wake_time, sleep_time = get_sleep_wake_times()
     light1 = light.Light()
     while True:
         light1.cycle()
-        await asyncio.sleep(60)  # Check every minute
+        await asyncio.sleep(10)  # Check every minute
 
 
 background_task = None
 background_task2 = None
 background_task3 = None
-background_task4 = None
+
 
 def start_background_tasks():
     global background_task, background_task2, background_task3
@@ -257,7 +266,7 @@ def start_background_tasks():
     if background_task2 is None:
         background_task2 = asyncio.create_task(run_at_wake_time())
     if background_task3 is None:
-        background_task3 = asyncio.create_task(demo())
+        background_task3 = asyncio.create_task(run_light_schedule())
 
 def start_demo_tasks():
     global background_task4
