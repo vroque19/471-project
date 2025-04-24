@@ -14,6 +14,7 @@ DEMO_MODE = True
 ENV_PATH = "/home/ubuntu/repos/471-project/backend/scripts/.env"
 BACKLIGHT_PATH = "/sys/class/backlight/10-0045/bl_power"
 
+speaker_path = os.path.abspath("/home/ubuntu/repos/471-project/backend/scripts/speaker.py")
 light_path = os.path.abspath("/home/ubuntu/repos/471-project/backend/scripts/light.py")
 log_data_path = os.path.abspath(
     "/home/ubuntu/repos/471-project/backend/scripts/log_data.py"
@@ -32,7 +33,8 @@ sys.path.insert(0, log_data_path)
 sys.path.insert(0, graphs_path)
 sys.path.insert(0, score_graph_path)
 sys.path.insert(0, score_path)
-from scripts import auth, log_data, score_graph, graph, query, calc_score, light
+sys.path.insert(0, speaker_path)
+from scripts import auth, log_data, score_graph, graph, query, calc_score, light, speaker
 
 load_dotenv(ENV_PATH)
 LIFX_TOKEN = os.getenv("TOKEN")
@@ -240,18 +242,26 @@ async def run_light_schedule():
         else:
             print("No cycle active")
         
-        await asyncio.sleep(10)  # Check every minute
+        await asyncio.sleep(10)
         
-    
-
-
-async def demo():
-    print("Running light schedule...")
+async def light_demo():
     wake_time, sleep_time = get_sleep_wake_times()
     light1 = light.Light()
+    await light1.run_cycle()
+
+async def speaker_demo():
+    speaker.init_speaker()
+    await speaker.play_noise()
+
+async def demo():
+    print("Running demo...")
+    wake_time, sleep_time = get_sleep_wake_times()
     while True:
-        light1.cycle()
-        await asyncio.sleep(10)  # Check every minute
+        light_task = asyncio.create_task(light_demo())
+        speaker_task = asyncio.create_task(speaker_demo())
+
+        await light_task
+        await speaker_task
 
 
 background_task = None
@@ -261,17 +271,16 @@ background_task3 = None
 
 def start_background_tasks():
     global background_task, background_task2, background_task3
-    if background_task is None:
-        background_task = asyncio.create_task(log_data_in_time_window())
-    if background_task2 is None:
-        background_task2 = asyncio.create_task(run_at_wake_time())
-    if background_task3 is None:
-        background_task3 = asyncio.create_task(run_light_schedule())
-
-def start_demo_tasks():
-    global background_task4
-    if background_task4 is None:
-        background_task4 = asyncio.create_task()
+    if not DEMO_MODE:
+        if background_task is None:
+            background_task = asyncio.create_task(log_data_in_time_window())
+        if background_task2 is None:
+            background_task2 = asyncio.create_task(run_at_wake_time())
+        if background_task3 is None:
+            background_task3 = asyncio.create_task(run_light_schedule())
+    if DEMO_MODE:
+        if background_task3 is None:
+            background_task3 = asyncio.create_task(demo())
 
 
 @app.on_event("startup")
@@ -282,9 +291,13 @@ async def startup_event():
 async def shutdown_event():
     global background_task, background_task2, background_task3
     tasks = [background_task, background_task2, background_task3]
-    for task in tasks:
-        if task:
-            task.cancel()
+    if not DEMO_MODE:
+        for task in tasks:
+            if task:
+                task.cancel()
+    else:
+        if background_task3:
+            background_task3.cancel()
         try:
             await background_task
         except asyncio.CancelledError:

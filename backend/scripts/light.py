@@ -77,7 +77,7 @@ class Light:
         payload = {"color": color}
         response = requests.put(url, headers=headers, json=payload)
         if response.ok:
-            print("Light color changed")
+            # print("Light color changed")
             return response.json()
         raise ValueError(f"Could not change color of light with id: {self._light_id}")
 
@@ -87,7 +87,7 @@ class Light:
         payload = {"duration": 1, "hue": hue}
         response = requests.put(url, headers=headers, json=payload)
         if response.ok:
-            print("Light hue changed")
+            # print("Light hue changed")
             return response.json()
         raise ValueError(f"Could not change hue of light with id: {self._light_id}")
 
@@ -97,7 +97,7 @@ class Light:
         payload = {"duration": 1, "saturation": saturation}
         response = requests.put(url, headers=headers, json=payload)
         if response.ok:
-            print("Light saturation changed")
+            # print("Light saturation changed")
             return response.json()
         raise ValueError(
             f"Could not change saturation of light with id: {self._light_id}"
@@ -109,7 +109,7 @@ class Light:
         payload = {"duration": 0.2, "brightness": brightness}
         response = requests.put(url, headers=headers, json=payload)
         if response.ok:
-            print("Light brightness changed")
+            # print("Light brightness changed")
             return response.json()
         raise ValueError(
             f"Could not change brightness of light with id: {self._light_id}"
@@ -123,7 +123,7 @@ class Light:
         payload = {"duration": 0.2, "kelvin": kelvin}
         response = requests.put(url, headers=headers, json=payload)
         if response.ok:
-            print("Light temperature changed")
+            # print("Light temperature changed")
             return response.json()
         raise ValueError(
             f"Could not change temperature of light with id: {self._light_id}"
@@ -247,24 +247,45 @@ class Light:
         self.turn_off()
         return
 
-    def cycle(self):
-        time.sleep(1)
+    async def cycle(self):
+        print("cycling light")
+        # await asyncio.sleep(3)
         self.wake_1()
+        await asyncio.sleep(2)
         self.wake_2()
+        await asyncio.sleep(2)
         self.wake_3()
+        await asyncio.sleep(2)
         self.wake_4()
+        await asyncio.sleep(2)
         self.wake_5()
+        await asyncio.sleep(2)
         self.sleep_1()
+        await asyncio.sleep(2)
         self.sleep_2()
+        await asyncio.sleep(2)
         self.sleep_3()
+        await asyncio.sleep(2)
         self.sleep_4()
+        await asyncio.sleep(2)
         self.sleep_5()
+        await asyncio.sleep(2)
         self.sleep_6()
     
-    def run_cycle(self, funcs):
-        for step in funcs:
+    async def run_cycle(self):
+        print("running light")
+        for step in self.wake_funcs:
             step()
-            time.sleep(1)
+            await asyncio.sleep(1)
+        for step in self.sleep_funcs:
+            step()
+        for step in self.wake_funcs:
+            step()
+            await asyncio.sleep(1)
+        for step in self.sleep_funcs:
+            step()
+            await asyncio.sleep(1)
+
     def wake_cycle(self):
         self.run_cycle(self.wake_funcs)
 
@@ -318,7 +339,9 @@ def main():
     light = Light()
     sleep_time, wake_time = get_sleep_wake_times()
     # test_get_step(light, wake_time, sleep_time, datetime.now())
-    light.sleep_1()
+    # light.sleep_1()
+    # light.turn_on()
+    light.run_cycle()
 
 
 
