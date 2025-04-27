@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from .database import get_db_connection, init_db
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-DEMO_MODE = True
+DEMO_MODE = False
 ENV_PATH = "/home/ubuntu/repos/471-project/backend/scripts/.env"
 BACKLIGHT_PATH = "/sys/class/backlight/10-0045/bl_power"
 
@@ -151,7 +151,7 @@ def get_sleep_wake_times():
 async def update_sleep_score_background():
     try:
         date, day, score = calc_score.main()
-        print("score: ", score)
+        # print("score: ", score)
         conn = get_db_connection()
         c = conn.cursor()
         c.execute(
@@ -178,18 +178,17 @@ async def run_at_wake_time():
         try:
             # await turn_display_on()
             sleep_time, wake_time = get_sleep_wake_times()  # Fetch wake_time from DB
-
             curr_time = get_curr_time()
             today = (curr_time.date())
             start_time = wake_time.replace(year=today.year, month=today.month, day=today.day)
             # allow 2 minutes for graphs to upload
-            two_minutes_later = start_time + timedelta(minutes=2)
+            
             if curr_time >= start_time and not graphs_uploaded:
-                print("time to get graphs... calculating")
+                # print("time to get graphs... calculating")
                 await update_sleep_score_background()
                 await asyncio.sleep(1)
                 graph.main()
-                await asyncio.sleep(1)
+                await asyncio.sleep(5)
                 score_graph.main()
                 graphs_uploaded = True
                 await asyncio.sleep(600)
@@ -247,21 +246,30 @@ async def run_light_schedule():
 async def light_demo():
     wake_time, sleep_time = get_sleep_wake_times()
     light1 = light.Light()
-    await light1.run_cycle()
+    while True:
+        await light1.run_cycle()
 
 async def speaker_demo():
     speaker.init_speaker()
-    await speaker.play_noise()
+    while True:
+        await speaker.play_noise()
+
+async def sensor_demo():
+    while True:
+        await log_data.demo_data()
 
 async def demo():
     print("Running demo...")
+    await turn_display_on()
     wake_time, sleep_time = get_sleep_wake_times()
-    while True:
-        light_task = asyncio.create_task(light_demo())
-        speaker_task = asyncio.create_task(speaker_demo())
 
-        await light_task
-        await speaker_task
+    light_task = asyncio.create_task(light_demo())
+    speaker_task = asyncio.create_task(speaker_demo())
+    log_task = asyncio.create_task(log_data.demo_data())
+
+    await speaker_task
+    await log_task
+    await light_task
 
 
 background_task = None
@@ -279,6 +287,8 @@ def start_background_tasks():
         if background_task3 is None:
             background_task3 = asyncio.create_task(run_light_schedule())
     if DEMO_MODE:
+        if background_task2 is None:
+            background_task2 = asyncio.create_task(run_at_wake_time())
         if background_task3 is None:
             background_task3 = asyncio.create_task(demo())
 
