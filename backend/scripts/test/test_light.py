@@ -229,7 +229,8 @@ def cycle(light):
 def main():
     light = Light()
     # light.turn_on()
-    cycle(light)
+    # cycle(light)
+    light.turn_off()
     
     # light.change_temperature(1500)
     # light.change_color(MORNING1)

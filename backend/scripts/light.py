@@ -33,8 +33,8 @@ class Light:
         # self.sleep_funcs = [self.sleep_1, self.sleep_2, self.sleep_3, self.sleep_4, self.sleep_5]
         self.wake_funcs = [getattr(self, f"wake_{i}") for i in range(1, 6)] # scope/ variable introspection
         self.sleep_funcs = [getattr(self, f"sleep_{i}") for i in range(1, 7)]
-        # self._light_id = os.getenv("ID")
-        self._light_id = os.getenv("TEST_ID")
+        self._light_id = os.getenv("ID")
+        # self._light_id = os.getenv("TEST_ID")
         self._token = os.getenv("TOKEN")
         self.get_headers = {
             "Authorization": f"Bearer {self._token}",
@@ -63,7 +63,7 @@ class Light:
     def turn_off(self):
         url = f"https://api.lifx.com/v1/lights/id:{self._light_id}/state"
         headers = self.put_headers
-        print(self._light_id)
+        # print(self._light_id)
         payload = {"power": "off"}
         response = requests.put(url, headers=headers, json=payload)
         if response.ok:
@@ -196,7 +196,7 @@ class Light:
         return
 
     def wake_5(self):
-        print("Brightest")
+        # print("Brightest")
         self.change_brightness(1)
         time.sleep(2)
         self.change_temperature(5500)
@@ -248,7 +248,7 @@ class Light:
         return
 
     async def cycle(self):
-        print("cycling light")
+        # print("cycling light")
         # await asyncio.sleep(3)
         self.wake_1()
         await asyncio.sleep(2)
@@ -273,7 +273,7 @@ class Light:
         self.sleep_6()
     
     async def run_cycle(self):
-        print("running light")
+        # print("running light")
         for step in self.wake_funcs:
             step()
             await asyncio.sleep(1)
@@ -294,7 +294,7 @@ class Light:
     # TODO (vroque19) : create the step functions for light
     # hint: use integer division with step size to index funcs
     def step(self, step_number, cycle_type="wake"):
-        print("stepping...")
+        # print("stepping...")
         # Select the appropriate function list based on cycle_type
         if cycle_type.lower() == "wake":
             funcs = self.wake_funcs
@@ -315,7 +315,7 @@ class Light:
             raise ValueError(f"Step number {step_number} results in an invalid index for {cycle_type} cycle")
 
         # Execute the function at the calculated index
-        print(f"Executing {cycle_type} step {step_number} (function index {index})")
+        # print(f"Executing {cycle_type} step {step_number} (function index {index})")
         funcs[index]()
 
 def get_sleep_wake_times():
@@ -341,7 +341,7 @@ def main():
     # test_get_step(light, wake_time, sleep_time, datetime.now())
     # light.sleep_1()
     # light.turn_on()
-    light.run_cycle()
+    # light.run_cycle()
 
 
 

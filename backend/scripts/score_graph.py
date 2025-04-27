@@ -62,7 +62,7 @@ def main():
 
     # Save and open the plot
     plt.savefig(f"{PLOT_PATH}{FILE_NAME}.png")
-    print(f"Score plot saved as {PLOT_PATH}{FILE_NAME}.png")
+    # print(f"Score plot saved as {PLOT_PATH}{FILE_NAME}.png")
     # subprocess.run(["code", f"{PLOT_PATH}{FILE_NAME}.png"])
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ def compute_sleep_score(df, sleep_time, wake_time):
         return 0
     
     """Compute sleep score based on various sleep metrics."""
-    print("computing sleep score...\n\n")
+    # print("computing sleep score...\n\n")
     """
     get the correct days and times
     """

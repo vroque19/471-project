@@ -125,7 +125,7 @@ SELECT s.day, s.score
     # Populate scores into the data dictionary
     for _, row in db_scores.iterrows():
         day_index = days_of_week.index(row['day'])
-        print(day_index)
+        # print(day_index)
         data["Sleep Score"][day_index] = row['score']  # Ensure score is a float for consistency
         # print(data)
     return data

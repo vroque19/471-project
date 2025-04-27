@@ -17,7 +17,7 @@
 </script>
 
 <div
-  class="min-h-screen bg-gradient-to-br bg-gray-950 text-white flex items-center justify-center p-1 select-none"
+  class="min-h-screen bg-gradient-to-br bg-gray-950 text-white flex items-center justify-center p-1 select-none cursor-none"
   on:touchstart={handleTouchStart}
   on:touchend={handleTouchEnd}
 >

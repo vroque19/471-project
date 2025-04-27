@@ -127,7 +127,7 @@ def main():
     ax2.yaxis.label.set_color(MOTION_COLOR)
     file_name = datetime.datetime.now(tz_LA).strftime("%Y-%m-%d") + "-daily"
     plt.savefig(f"{PLOT_PATH+file_name}.png")
-    print(f"Plot saved as {PLOT_PATH+file_name}.png")
+    # print(f"Plot saved as {PLOT_PATH+file_name}.png")
     # subprocess.run(["code", f"{PLOT_PATH+file_name}.png"])
 
 
